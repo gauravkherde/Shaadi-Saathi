@@ -3,22 +3,29 @@ package com.gaurav.shaadisaathi.activities
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.QuerySnapshot
-import com.gaurav.shaadisaathi.adapters.EventAdapter
+import com.gaurav.shaadisaathi.R
+import com.gaurav.shaadisaathi.adapters.EventTimelineAdapter
 import com.gaurav.shaadisaathi.databinding.ActivityEventTimelineBinding
 import com.gaurav.shaadisaathi.models.Event
+import com.gaurav.shaadisaathi.repository.EventRepository
+import com.gaurav.shaadisaathi.utils.CalendarIntegration
+import kotlinx.coroutines.launch
 
 class EventTimelineActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityEventTimelineBinding
     private lateinit var auth: FirebaseAuth
-    private val firestore = FirebaseFirestore.getInstance()
-    private lateinit var eventAdapter: EventAdapter
+    private val eventRepository = EventRepository()
+    private lateinit var eventAdapter: EventTimelineAdapter
     private val eventList = mutableListOf<Event>()
     private val TAG = "EventTimelineActivity"
 
@@ -29,25 +36,36 @@ class EventTimelineActivity : AppCompatActivity() {
 
         auth = FirebaseAuth.getInstance()
 
+        setupToolbar()
         setupRecyclerView()
+        setupClickListeners()
         loadEvents()
 
-        binding.fabAddEvent.setOnClickListener {
-            // Check if user is host before allowing event creation
-            checkUserRoleAndNavigate()
-        }
+        Log.d(TAG, "EventTimelineActivity initialized")
+    }
 
-        binding.btnBack.setOnClickListener {
-            finish()
+    private fun setupToolbar() {
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.apply {
+            title = "Event Timeline"
+            setDisplayHomeAsUpEnabled(true)
+            setDisplayShowHomeEnabled(true)
         }
     }
 
     private fun setupRecyclerView() {
-        eventAdapter = EventAdapter(eventList) { event ->
-            val intent = Intent(this, EventDetailActivity::class.java)
-            intent.putExtra("eventId", event.id)
-            startActivity(intent)
-        }
+        eventAdapter = EventTimelineAdapter(
+            events = eventList,
+            onEventClick = { event ->
+                openEventDetail(event)
+            },
+            onEditClick = { event ->
+                editEvent(event)
+            },
+            onDeleteClick = { event ->
+                showDeleteConfirmation(event)
+            }
+        )
 
         binding.recyclerViewEvents.apply {
             layoutManager = LinearLayoutManager(this@EventTimelineActivity)
@@ -55,77 +73,99 @@ class EventTimelineActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadEvents() {
-        val currentUser = auth.currentUser ?: return
+    private fun setupClickListeners() {
+        binding.fabAddEvent.setOnClickListener {
+            val intent = Intent(this, AddEventActivity::class.java)
+            startActivity(intent)
+        }
 
+        binding.btnAddToCalendar.setOnClickListener {
+            addAllEventsToCalendar()
+        }
+    }
+
+    private fun loadEvents() {
         binding.progressBar.visibility = View.VISIBLE
 
-        // Check user role first
-        firestore.collection("users").document(currentUser.uid).get()
-            .addOnSuccessListener { userDoc ->
-                val userRole = userDoc.getString("role")
-                Log.d(TAG, "User role: $userRole")
-
-                if (userRole == "host") {
-                    // Load events created by this host
-                    loadHostEvents(currentUser.uid)
-                    // Show FAB for hosts
-                    binding.fabAddEvent.visibility = View.VISIBLE
+        lifecycleScope.launch {
+            try {
+                val result = eventRepository.getAllEvents()
+                if (result.isSuccess) {
+                    val events = result.getOrNull() ?: emptyList()
+                    eventList.clear()
+                    eventList.addAll(events.sortedBy { it.date })
+                    eventAdapter.notifyDataSetChanged()
+                    updateEmptyState()
                 } else {
-                    // Load all events for guests (they can see all events)
-                    loadAllEvents()
-                    // Hide FAB for guests
-                    binding.fabAddEvent.visibility = View.GONE
+                    Log.e(TAG, "Error loading events: ${result.exceptionOrNull()}")
+                    Toast.makeText(this@EventTimelineActivity, "Error loading events", Toast.LENGTH_SHORT).show()
                 }
-            }
-            .addOnFailureListener { e ->
-                Log.e(TAG, "Error getting user role", e)
+            } catch (e: Exception) {
+                Log.e(TAG, "Exception loading events", e)
+                Toast.makeText(this@EventTimelineActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
                 binding.progressBar.visibility = View.GONE
-                loadAllEvents() // Fallback to show all events
-            }
-    }
-
-    private fun loadHostEvents(hostId: String) {
-        Log.d(TAG, "Loading events for host: $hostId")
-
-        firestore.collection("events")
-            .whereEqualTo("hostId", hostId)
-            .addSnapshotListener { snapshots, e ->
-                handleEventsSnapshot(snapshots, e)
-            }
-    }
-
-    private fun loadAllEvents() {
-        Log.d(TAG, "Loading all events for guest view")
-
-        firestore.collection("events")
-            .addSnapshotListener { snapshots, e ->
-                handleEventsSnapshot(snapshots, e)
-            }
-    }
-
-    private fun handleEventsSnapshot(snapshots: QuerySnapshot?, e: Exception?) {
-        binding.progressBar.visibility = View.GONE
-
-        if (e != null) {
-            Log.e(TAG, "Error loading events", e)
-            return
-        }
-
-        eventList.clear()
-        snapshots?.documents?.forEach { doc ->
-            val event = doc.toObject(Event::class.java)
-            event?.let {
-                Log.d(TAG, "Loaded event: ${it.name}")
-                eventList.add(it)
             }
         }
+    }
 
-        // Sort events by date (you might want to add proper date parsing here)
-        eventList.sortBy { it.date }
+    private fun openEventDetail(event: Event) {
+        val intent = Intent(this, EventDetailActivity::class.java)
+        intent.putExtra("eventId", event.id)
+        startActivity(intent)
+    }
 
-        eventAdapter.notifyDataSetChanged()
+    private fun editEvent(event: Event) {
+        val intent = Intent(this, EditEventActivity::class.java)
+        intent.putExtra("eventId", event.id)
+        startActivity(intent)
+    }
 
+    private fun showDeleteConfirmation(event: Event) {
+        AlertDialog.Builder(this)
+            .setTitle("Delete Event")
+            .setMessage("Are you sure you want to delete ${event.name}?\n\nThis action cannot be undone.")
+            .setPositiveButton("Delete") { _, _ ->
+                deleteEvent(event)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun deleteEvent(event: Event) {
+        lifecycleScope.launch {
+            try {
+                val result = eventRepository.deleteEvent(event.id)
+                if (result.isSuccess) {
+                    Toast.makeText(this@EventTimelineActivity, "${event.name} deleted successfully", Toast.LENGTH_SHORT).show()
+                    loadEvents()
+                } else {
+                    Toast.makeText(this@EventTimelineActivity, "Error deleting event", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error deleting event", e)
+                Toast.makeText(this@EventTimelineActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun addAllEventsToCalendar() {
+        val weddingEvents = eventList.map { event ->
+            CalendarIntegration.WeddingEvent(
+                title = event.name,
+                description = event.description,
+                location = event.venue.getFullAddress(),
+                startTime = event.date,
+                endTime = event.date + (4 * 60 * 60 * 1000), // 4 hours default
+                allDay = false
+            )
+        }
+
+        CalendarIntegration.addMultipleWeddingEvents(this, weddingEvents)
+        Toast.makeText(this, "Events added to calendar!", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun updateEmptyState() {
         if (eventList.isEmpty()) {
             binding.layoutEmptyState.visibility = View.VISIBLE
             binding.recyclerViewEvents.visibility = View.GONE
@@ -133,28 +173,29 @@ class EventTimelineActivity : AppCompatActivity() {
             binding.layoutEmptyState.visibility = View.GONE
             binding.recyclerViewEvents.visibility = View.VISIBLE
         }
-
-        Log.d(TAG, "Total events loaded: ${eventList.size}")
     }
 
-    private fun checkUserRoleAndNavigate() {
-        val currentUser = auth.currentUser ?: return
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_event_timeline, menu)
+        return true
+    }
 
-        firestore.collection("users").document(currentUser.uid).get()
-            .addOnSuccessListener { userDoc ->
-                val userRole = userDoc.getString("role")
-                if (userRole == "host") {
-                    startActivity(Intent(this, AddEventActivity::class.java))
-                } else {
-                    // Should not happen as FAB is hidden for guests, but just in case
-                    android.widget.Toast.makeText(this, "Only hosts can create events", android.widget.Toast.LENGTH_SHORT).show()
-                }
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                finish()
+                true
             }
+            R.id.action_calendar_sync -> {
+                addAllEventsToCalendar()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 
     override fun onResume() {
         super.onResume()
-        // Refresh events when returning from AddEventActivity
         loadEvents()
     }
 }

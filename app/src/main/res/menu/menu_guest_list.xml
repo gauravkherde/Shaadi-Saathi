@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_export_csv"
+        android:icon="@drawable/ic_export_csv"
+        android:title="Export CSV"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_send_invitations"
+        android:icon="@drawable/ic_send_invitation"
+        android:title="Send Invitations"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_guest_stats"
+        android:icon="@drawable/ic_statistics"
+        android:title="Statistics"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_filter"
+        android:icon="@drawable/ic_filter"
+        android:title="Filter"
+        app:showAsAction="never" />
+
+</menu>

@@ -96,4 +96,69 @@
     <string name="success_guest_added">Guest added successfully</string>
     <string name="success_photo_uploaded">Photo uploaded successfully</string>
     <string name="success_message_sent">Message sent</string>
+
+    <!-- Phase 4 Guest Management Strings -->
+    <string name="guest_management">Guest Management</string>
+    <string name="import_contacts">Import Contacts</string>
+    <string name="rsvp_tracking">RSVP Tracking</string>
+    <string name="guest_statistics">Guest Statistics</string>
+    <string name="export_guest_list">Export Guest List</string>
+    <string name="send_invitations">Send Invitations</string>
+    <string name="filter_guests">Filter Guests</string>
+    <string name="guest_categories">Guest Categories</string>
+    <string name="meal_preferences">Meal Preferences</string>
+    <string name="plus_one_details">Plus One Details</string>
+    <string name="special_requirements">Special Requirements</string>
+    <string name="vip_guest">VIP Guest</string>
+    <string name="invitation_sent">Invitation Sent</string>
+    <string name="invitation_pending">Invitation Pending</string>
+
+    <!-- Guest Management Additional Strings -->
+    <string name="guest_detail_title">Guest Details</string>
+    <string name="edit_guest_title">Edit Guest</string>
+    <string name="contact_information">Contact Information</string>
+    <string name="meal_preferences_title">Meal Preferences</string>
+    <string name="plus_one_details_title">Plus One Details</string>
+    <string name="additional_information">Additional Information</string>
+    <string name="preferences_permissions">Preferences &amp; Permissions</string>
+    <string name="invitation_status_title">Invitation Status</string>
+    <string name="timeline_title">Timeline</string>
+    <string name="update_rsvp">Update RSVP</string>
+    <string name="send_invitation">Send Invitation</string>
+    <string name="resend_invitation">Resend Invitation</string>
+    <string name="delete_guest_confirm">Are you sure you want to delete this guest? This action cannot be undone.</string>
+    <string name="guest_deleted_success">Guest deleted successfully</string>
+    <string name="guest_updated_success">Guest updated successfully</string>
+    <string name="invitation_sent_success">Invitation sent successfully</string>
+    <string name="rsvp_updated_success">RSVP status updated</string>
+    <string name="call_guest">Call Guest</string>
+    <string name="message_guest">Message Guest</string>
+    <string name="email_guest">Email Guest</string>
+    <string name="share_guest_details">Share Guest Details</string>
+
+    <!-- Add these missing strings -->
+    <string name="event_timeline">Event Timeline</string>
+    <string name="vendor_directory">Vendor Directory</string>
+    <string name="edit_event">Edit Event</string>
+    <string name="delete_event">Delete Event</string>
+    <string name="event_details">Event Details</string>
+    <string name="calendar_sync">Sync with Calendar</string>
+    <string name="no_events_found">No events found</string>
+    <string name="event_deleted_success">Event deleted successfully</string>
+    <string name="events_added_to_calendar">Events added to calendar</string>
+    <string name="category_family">Family</string>
+    <string name="category_friends">Friends</string>
+    <string name="category_colleagues">Colleagues</string>
+    <string name="category_others">Others</string>
+    <string name="filter_by_category">Filter by Category</string>
+    <string name="clear_all_filters">Clear All Filters</string>
+    <string name="apply_filters">Apply Filters</string>
+    <string name="additional_filters">Additional Filters</string>
+    <string name="vip_guests_only">VIP Guests Only</string>
+    <string name="plus_one_guests_only">Plus One Guests Only</string>
+    <string name="invitation_sent_only">Invitation Sent Only</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+
 </resources>

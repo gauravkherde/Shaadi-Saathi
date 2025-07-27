@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_calendar_sync"
+        android:icon="@drawable/ic_calendar"
+        android:title="Sync with Calendar"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_timeline_view"
+        android:icon="@drawable/ic_timeline"
+        android:title="Timeline View"
+        app:showAsAction="never" />
+
+</menu>

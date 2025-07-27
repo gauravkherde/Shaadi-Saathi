@@ -2,12 +2,30 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.gaurav.shaadisaathi">
 
+    <!-- Internet and Network -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Camera and Storage -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- Contacts Import -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
+    <!-- Calendar Integration -->
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <uses-permission android:name="android.permission.WRITE_CALENDAR" />
+
+    <!-- Notifications and Alarms -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
+    <!-- Phone and SMS for invitations -->
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.SEND_SMS" />
 
     <application
         android:name=".ShaadiSaathiApplication"
@@ -19,40 +37,63 @@
         android:theme="@style/Theme.ShaadiSaathi"
         android:requestLegacyExternalStorage="true">
 
-        <!-- Phase 1 Activities -->
-        <activity
-            android:name=".activities.SplashActivity"
-            android:exported="true"
-            android:theme="@style/Theme.ShaadiSaathi.NoActionBar">
+        <!-- Main Activities -->
+        <activity android:name=".activities.MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <activity android:name=".activities.LoginActivity" android:exported="false" />
-        <activity android:name=".activities.RegisterActivity" android:exported="false" />
-        <activity android:name=".activities.HostDashboardActivity" android:exported="false" />
-        <activity android:name=".activities.GuestMainActivity" android:exported="false" />
+        <!-- Phase 4 Guest Management Activities -->
+        <activity
+            android:name=".activities.GuestListActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ShaadiSaathi"
+            android:label="Guest Management" />
 
-        <!-- Phase 2 Activities -->
-        <activity android:name=".activities.GuestListActivity" android:exported="false" />
-        <activity android:name=".activities.AddGuestActivity" android:exported="false" />
-        <activity android:name=".activities.EventTimelineActivity" android:exported="false" />
-        <activity android:name=".activities.AddEventActivity" android:exported="false" />
-        <activity android:name=".activities.RSVPActivity" android:exported="false" />
-        <activity android:name=".activities.EventDetailActivity" android:exported="false" />
+        <activity
+            android:name=".activities.AddGuestActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ShaadiSaathi"
+            android:label="Add Guest"
+            android:parentActivityName=".activities.GuestListActivity" />
 
-        <!-- Phase 3 Activities -->
-        <activity android:name=".activities.ChatListActivity" android:exported="false" />
-        <activity android:name=".activities.ChatActivity" android:exported="false" />
-        <activity android:name=".activities.CreateChatRoomActivity" android:exported="false" />
+        <activity
+            android:name=".activities.EditGuestActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ShaadiSaathi"
+            android:label="Edit Guest"
+            android:parentActivityName=".activities.GuestListActivity" />
+
+        <activity
+            android:name=".activities.GuestDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ShaadiSaathi"
+            android:label="Guest Details"
+            android:parentActivityName=".activities.GuestListActivity" />
+
+        <activity
+            android:name=".activities.ImportContactsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ShaadiSaathi"
+            android:label="Import Contacts"
+            android:parentActivityName=".activities.GuestListActivity" />
+
+        <!-- Photo Gallery Activities -->
         <activity android:name=".activities.PhotoGalleryActivity" android:exported="false" />
         <activity android:name=".activities.PhotoViewerActivity" android:exported="false" />
-        <activity android:name=".activities.CameraActivity" android:exported="false" />
-        <activity android:name=".activities.PhotoUploadActivity" android:exported="false" />
-        <activity android:name=".activities.NotificationActivity" android:exported="false" />
 
+        <!-- Chat Activities -->
+        <activity android:name=".activities.CreateChatRoomActivity" android:exported="false" />
+
+        <!-- Notification Receiver -->
+        <receiver
+            android:name=".utils.ReminderReceiver"
+            android:enabled="true"
+            android:exported="false" />
+
+        <!-- FileProvider for sharing files -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
@@ -62,14 +103,6 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
-
-
-        <!-- Firebase Services -->
-        <service android:name=".services.FirebaseMessagingService" android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
 
     </application>
 

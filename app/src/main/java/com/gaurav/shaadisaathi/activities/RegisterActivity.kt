@@ -3,9 +3,11 @@ package com.gaurav.shaadisaathi.activities
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
 import com.gaurav.shaadisaathi.databinding.ActivityRegisterBinding
 
@@ -23,135 +25,125 @@ class RegisterActivity : AppCompatActivity() {
 
         auth = FirebaseAuth.getInstance()
 
+        setupClickListeners()
+    }
+
+    private fun setupClickListeners() {
         binding.btnRegister.setOnClickListener {
-            registerUser()
+            val name = binding.etName.text.toString().trim()
+            val email = binding.etEmail.text.toString().trim()
+            val password = binding.etPassword.text.toString().trim()
+            val confirmPassword = binding.etConfirmPassword.text.toString().trim()
+
+            if (validateInput(name, email, password, confirmPassword)) {
+                registerUser(name, email, password)
+            }
         }
 
-        binding.tvGoToLogin.setOnClickListener {
-            startActivity(Intent(this, LoginActivity::class.java))
+        binding.btnBackToLogin.setOnClickListener {
             finish()
         }
     }
 
-    private fun registerUser() {
-        val name = binding.etName.text.toString().trim()
-        val email = binding.etEmail.text.toString().trim()
-        val password = binding.etPassword.text.toString().trim()
-
-        val role = when {
-            binding.rgRole.checkedRadioButtonId == binding.rbHost.id -> "host"
-            binding.rgRole.checkedRadioButtonId == binding.rbGuest.id -> "guest"
-            else -> ""
-        }
-
-        // Validation
+    private fun validateInput(name: String, email: String, password: String, confirmPassword: String): Boolean {
         if (name.isEmpty()) {
             binding.etName.error = "Name is required"
-            binding.etName.requestFocus()
-            return
+            return false
         }
 
         if (email.isEmpty()) {
             binding.etEmail.error = "Email is required"
-            binding.etEmail.requestFocus()
-            return
+            return false
         }
 
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            binding.etEmail.error = "Please enter a valid email"
-            binding.etEmail.requestFocus()
-            return
+            binding.etEmail.error = "Enter valid email"
+            return false
         }
 
         if (password.isEmpty()) {
             binding.etPassword.error = "Password is required"
-            binding.etPassword.requestFocus()
-            return
+            return false
         }
 
         if (password.length < 6) {
             binding.etPassword.error = "Password must be at least 6 characters"
-            binding.etPassword.requestFocus()
-            return
+            return false
         }
 
-        if (role.isEmpty()) {
-            Toast.makeText(this, "Please select your role", Toast.LENGTH_SHORT).show()
-            return
+        if (password != confirmPassword) {
+            binding.etConfirmPassword.error = "Passwords don't match"
+            return false
         }
 
-        // Disable button and show loading
+        return true
+    }
+
+    private fun registerUser(name: String, email: String, password: String) {
+        binding.progressBar.visibility = View.VISIBLE
         binding.btnRegister.isEnabled = false
-        binding.btnRegister.text = "Creating account..."
 
-        // Create Firebase user
         auth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
+            .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    val uid = auth.currentUser?.uid
-                    if (uid != null) {
-                        saveUserDataToFirestore(uid, name, email, role)
-                    } else {
-                        Log.e(TAG, "User UID is null after successful registration")
-                        showRegistrationError("Registration failed. Please try again.")
-                    }
+                    Log.d(TAG, "createUserWithEmail:success")
+
+                    val user = auth.currentUser
+                    val profileUpdates = UserProfileChangeRequest.Builder()
+                        .setDisplayName(name)
+                        .build()
+
+                    user?.updateProfile(profileUpdates)
+                        ?.addOnCompleteListener { profileTask ->
+                            if (profileTask.isSuccessful) {
+                                createUserDocument(user.uid, name, email)
+                            } else {
+                                Log.w(TAG, "updateProfile:failure", profileTask.exception)
+                                createUserDocument(user.uid, name, email)
+                            }
+                        }
                 } else {
-                    val errorMessage = task.exception?.message ?: "Registration failed"
-                    Log.e(TAG, "Firebase Auth error: $errorMessage")
-                    showRegistrationError("Registration failed: $errorMessage")
+                    binding.progressBar.visibility = View.GONE
+                    binding.btnRegister.isEnabled = true
+                    Log.w(TAG, "createUserWithEmail:failure", task.exception)
+                    Toast.makeText(this, "Registration failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
                 }
             }
     }
 
-    private fun saveUserDataToFirestore(uid: String, name: String, email: String, role: String) {
-        val userMap = hashMapOf(
+    private fun createUserDocument(userId: String, name: String, email: String) {
+        val userDoc = hashMapOf(
             "name" to name,
             "email" to email,
-            "role" to role,
-            "createdAt" to System.currentTimeMillis()
+            "userId" to userId,
+            "createdAt" to System.currentTimeMillis(),
+            "profileComplete" to false,
+            "weddingDate" to 0L,
+            "partnerName" to "",
+            "weddingVenue" to ""
         )
 
-        firestore.collection("users").document(uid).set(userMap)
+        firestore.collection("users").document(userId)
+            .set(userDoc)
             .addOnSuccessListener {
-                Log.d(TAG, "User data saved successfully for role: $role")
-
-                // Reset button state
-                binding.btnRegister.isEnabled = true
-                binding.btnRegister.text = "Register"
-
-                Toast.makeText(this, "Registration successful! Welcome $name", Toast.LENGTH_SHORT).show()
-
-                // Navigate based on role with proper intent flags
-                navigateToMainScreen(role)
+                binding.progressBar.visibility = View.GONE
+                Log.d(TAG, "User document created successfully")
+                Toast.makeText(this, "Registration successful! Welcome to ShaadiSaathi!", Toast.LENGTH_LONG).show()
+                navigateToMain()
             }
             .addOnFailureListener { e ->
-                Log.e(TAG, "Firestore error: ${e.message}")
-                showRegistrationError("Failed to save user data: ${e.message}")
+                binding.progressBar.visibility = View.GONE
+                binding.btnRegister.isEnabled = true
+                Log.w(TAG, "Error creating user document", e)
+                Toast.makeText(this, "Registration completed but profile setup failed. You can complete it later.", Toast.LENGTH_LONG).show()
+                navigateToMain()
             }
     }
 
-    private fun navigateToMainScreen(role: String) {
-        // Add delay to ensure UI updates complete
-        binding.root.postDelayed({
-            val intent = when (role) {
-                "host" -> Intent(this@RegisterActivity, HostDashboardActivity::class.java)
-                "guest" -> Intent(this@RegisterActivity, GuestMainActivity::class.java)
-                else -> {
-                    Log.e(TAG, "Unknown role: $role")
-                    Intent(this@RegisterActivity, LoginActivity::class.java)
-                }
-            }
-
-            // Clear the activity stack and start fresh
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
-            finish()
-        }, 800) // 800ms delay to show success message
-    }
-
-    private fun showRegistrationError(message: String) {
-        binding.btnRegister.isEnabled = true
-        binding.btnRegister.text = "Register"
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    private fun navigateToMain() {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
     }
 }

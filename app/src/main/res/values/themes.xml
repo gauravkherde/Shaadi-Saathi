@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base application theme -->
+    <style name="Theme.ShaadiSaathi" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryVariant">@color/colorPrimaryVariant</item>
+        <item name="colorSecondary">@color/colorSecondary</item>
+        <item name="colorSecondaryVariant">@color/colorSecondaryVariant</item>
+        <item name="colorOnPrimary">@color/colorAccent</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSurface">@color/colorSurface</item>
+        <item name="colorOnSurface">@color/colorTextPrimary</item>
+        <item name="android:colorBackground">@color/colorBackground</item>
+        <item name="colorOnBackground">@color/colorTextPrimary</item>
+    </style>
+
+    <!-- No Action Bar theme for Splash -->
+    <style name="Theme.ShaadiSaathi.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:statusBarColor">@color/colorPrimary</item>
+    </style>
+
+    <!-- Button Styles -->
+    <style name="ElevatedButton" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">@color/colorPrimary</item>
+        <item name="android:textColor">@color/colorAccent</item>
+        <item name="cornerRadius">8dp</item>
+        <item name="elevation">6dp</item>
+        <item name="android:fontFamily">serif</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <!-- Card Style -->
+    <style name="WeddingCard" parent="Widget.MaterialComponents.CardView">
+        <item name="cardCornerRadius">12dp</item>
+        <item name="cardElevation">6dp</item>
+        <item name="cardBackgroundColor">@color/colorAccent</item>
+        <item name="strokeColor">@color/colorSecondary</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+
+    <!-- Text Styles -->
+    <style name="HeaderText">
+        <item name="android:textSize">24sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/colorPrimary</item>
+        <item name="android:fontFamily">serif</item>
+    </style>
+
+    <style name="SubHeaderText">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/colorSecondary</item>
+        <item name="android:fontFamily">serif</item>
+    </style>
+</resources>

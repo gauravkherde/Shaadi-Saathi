@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp"
+    app:strokeColor="@color/colorSecondary"
+    app:strokeWidth="1dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/tvGuestName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Guest Name"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/colorPrimary"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/tvRSVPStatus" />
+
+        <TextView
+            android:id="@+id/tvRSVPStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Accepted"
+            android:textSize="12sp"
+            android:textColor="@color/colorAccent"
+            android:background="@drawable/badge_background"
+            android:padding="4dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <TextView
+            android:id="@+id/tvEventName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Event Name"
+            android:textSize="14sp"
+            android:textColor="@color/colorSecondary"
+            android:layout_marginTop="4dp"
+            app:layout_constraintTop_toBottomOf="@id/tvGuestName"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <TextView
+            android:id="@+id/tvRSVPDate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Responded on: Date"
+            android:textSize="12sp"
+            android:textColor="@color/colorTextPrimary"
+            android:layout_marginTop="4dp"
+            app:layout_constraintTop_toBottomOf="@id/tvEventName"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

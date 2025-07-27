@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="6dp"
+    app:strokeColor="@color/colorSecondary"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Photo Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="12dp"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tvUploaderName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Uploader Name"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/colorPrimary"
+                android:fontFamily="serif" />
+
+            <TextView
+                android:id="@+id/tvUploadTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2h ago"
+                android:textSize="12sp"
+                android:textColor="@color/colorSecondary" />
+
+        </LinearLayout>
+
+        <!-- Photo Image -->
+        <ImageView
+            android:id="@+id/ivPhoto"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:scaleType="centerCrop"
+            android:background="@color/colorAccent"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <!-- Photo Caption -->
+        <TextView
+            android:id="@+id/tvCaption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Photo caption goes here..."
+            android:textSize="14sp"
+            android:textColor="@color/colorTextPrimary"
+            android:padding="12dp"
+            android:visibility="gone" />
+
+        <!-- NEW: Image Info TextView -->
+        <TextView
+            android:id="@+id/tvImageInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="1920×1080 • 756 KB"
+            android:textSize="12sp"
+            android:textColor="@color/colorSecondary"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="4dp" />
+
+        <!-- Photo Actions -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="12dp"
+            android:gravity="center_vertical">
+
+            <ImageButton
+                android:id="@+id/btnLike"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/btn_star_big_off"
+                android:tint="@color/colorSecondary" />
+
+            <TextView
+                android:id="@+id/tvLikeCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="12 likes"
+                android:textSize="12sp"
+                android:textColor="@color/colorSecondary"
+                android:layout_marginStart="8dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <ImageButton
+                android:id="@+id/btnComment"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_menu_edit"
+                android:tint="@color/colorSecondary"
+                android:layout_marginStart="16dp" />
+
+            <TextView
+                android:id="@+id/tvCommentCount"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="5 comments"
+                android:textSize="12sp"
+                android:textColor="@color/colorSecondary"
+                android:layout_marginStart="8dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

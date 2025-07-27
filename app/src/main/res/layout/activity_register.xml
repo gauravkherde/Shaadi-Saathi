@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorBackground"
+    android:padding="24dp"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Register"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:fontFamily="serif"
+            android:textColor="@color/colorPrimary"
+            android:layout_gravity="center"
+            android:layout_marginBottom="32dp" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Full Name"
+            android:layout_marginBottom="16dp"
+            app:hintTextColor="@color/colorPrimary"
+            app:boxStrokeColor="@color/colorPrimary">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Email"
+            android:layout_marginBottom="16dp"
+            app:hintTextColor="@color/colorPrimary"
+            app:boxStrokeColor="@color/colorPrimary">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etEmail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textEmailAddress" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Password"
+            android:layout_marginBottom="24dp"
+            app:hintTextColor="@color/colorPrimary"
+            app:boxStrokeColor="@color/colorPrimary">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="I am a:"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/colorPrimary"
+            android:fontFamily="serif"
+            android:layout_marginBottom="16dp" />
+
+        <RadioGroup
+            android:id="@+id/rgRole"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="24dp"
+            android:gravity="center">
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/rbHost"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Host/Organizer"
+                android:textColor="@color/colorTextPrimary"
+                android:buttonTint="@color/colorSecondary"
+                android:layout_marginEnd="24dp" />
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/rbGuest"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Guest"
+                android:textColor="@color/colorTextPrimary"
+                android:buttonTint="@color/colorSecondary" />
+
+        </RadioGroup>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRegister"
+            style="@style/ElevatedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Register"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/tvGoToLogin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Already have an account? Login"
+            android:textColor="@color/colorSecondary"
+            android:layout_gravity="center"
+            android:clickable="true"
+            android:focusable="true" />
+
+    </LinearLayout>
+</ScrollView>

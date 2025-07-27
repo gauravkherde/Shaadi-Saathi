@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorBackground"
+    android:padding="24dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Welcome Section -->
+        <TextView
+            android:id="@+id/tvHostWelcome"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Welcome Host!"
+            android:textColor="@color/colorPrimary"
+            android:textSize="28sp"
+            android:fontFamily="serif"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tvHostSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Manage your wedding events &amp; guests"
+            android:textColor="@color/colorSecondary"
+            android:textSize="16sp"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Statistics Cards -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Quick Stats"
+            android:textColor="@color/colorPrimary"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:fontFamily="serif"
+            android:layout_marginBottom="16dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardGuestStats"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="6dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:cardBackgroundColor="@color/colorAccent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:gravity="center">
+
+                    <TextView
+                        android:id="@+id/tvGuestCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/colorPrimary" />
+
+                    <TextView
+                        android:id="@+id/tvGuestLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Guests Invited"
+                        android:textSize="12sp"
+                        android:textColor="@color/colorSecondary"
+                        android:gravity="center" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardEventStats"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="6dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:cardBackgroundColor="@color/colorAccent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:gravity="center">
+
+                    <TextView
+                        android:id="@+id/tvEventCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/colorPrimary" />
+
+                    <TextView
+                        android:id="@+id/tvEventLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Events Planned"
+                        android:textSize="12sp"
+                        android:textColor="@color/colorSecondary"
+                        android:gravity="center" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+        <!-- RSVP Stats Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="6dp"
+            app:cardBackgroundColor="@color/colorAccent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:gravity="center_vertical">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvRSVPCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/colorPrimary" />
+
+                    <TextView
+                        android:id="@+id/tvRSVPLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="RSVPs Confirmed"
+                        android:textSize="12sp"
+                        android:textColor="@color/colorSecondary" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Phase 3 Features Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Communication &amp; Media"
+            android:textColor="@color/colorPrimary"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:fontFamily="serif"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Chat & Photo Buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnChatRooms"
+                style="@style/ElevatedButton"
+                android:text="Chat Rooms"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:drawableStart="@drawable/ic_chat"
+                android:drawablePadding="8dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPhotoGallery"
+                style="@style/ElevatedButton"
+                android:text="Photo Gallery"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:drawableStart="@drawable/ic_gallery"
+                android:drawablePadding="8dp" />
+
+        </LinearLayout>
+
+        <!-- Quick Actions Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Quick Actions"
+            android:textColor="@color/colorPrimary"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:fontFamily="serif"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Add Event & Add Guest Buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAddEvent"
+                style="@style/ElevatedButton"
+                android:text="Add Event"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:drawableStart="@drawable/ic_add"
+                android:drawablePadding="8dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAddGuest"
+                style="@style/ElevatedButton"
+                android:text="Add Guest"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:drawableStart="@drawable/ic_add"
+                android:drawablePadding="8dp" />
+
+        </LinearLayout>
+
+        <!-- Management Buttons -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnManageGuests"
+            style="@style/ElevatedButton"
+            android:text="Manage Guests"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnEventTimeline"
+            style="@style/ElevatedButton"
+            android:text="Event Timeline"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnViewRSVPs"
+            style="@style/ElevatedButton"
+            android:text="View RSVPs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Logout Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLogoutHost"
+            style="@style/ElevatedButton"
+            android:text="Logout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:backgroundTint="@android:color/holo_red_dark" />
+
+    </LinearLayout>
+</ScrollView>

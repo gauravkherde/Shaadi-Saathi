@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorBackground">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- App Bar -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="@color/colorPrimary"
+            android:padding="16dp">
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_arrow_back"
+                android:tint="@color/colorAccent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:fontFamily="serif"
+                android:text="Add Guest"
+                android:textColor="@color/colorAccent"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@id/btnBack"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Form Content -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Full Name *"
+                android:layout_marginBottom="16dp"
+                app:boxStrokeColor="@color/colorPrimary"
+                app:hintTextColor="@color/colorPrimary">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPersonName" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Email"
+                android:layout_marginBottom="16dp"
+                app:boxStrokeColor="@color/colorPrimary"
+                app:hintTextColor="@color/colorPrimary">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etEmail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textEmailAddress" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Phone Number"
+                android:layout_marginBottom="16dp"
+                app:boxStrokeColor="@color/colorPrimary"
+                app:hintTextColor="@color/colorPrimary">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPhone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="phone" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Category"
+                android:textColor="@color/colorPrimary"
+                android:textSize="16sp"
+                android:fontFamily="serif"
+                android:layout_marginBottom="8dp" />
+
+            <Spinner
+                android:id="@+id/spinnerCategory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Dietary Restrictions"
+                android:layout_marginBottom="16dp"
+                app:boxStrokeColor="@color/colorPrimary"
+                app:hintTextColor="@color/colorPrimary">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etDietaryRestrictions"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textMultiLine" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="24dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Plus One Allowed"
+                    android:textColor="@color/colorTextPrimary"
+                    android:textSize="16sp" />
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchPlusOne"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:thumbTint="@color/colorSecondary"
+                    android:trackTint="@color/colorPrimary" />
+
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSaveGuest"
+                style="@style/ElevatedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Save Guest" />
+
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

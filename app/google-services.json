@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "398505204881",
+    "firebase_url": "https://shaadisaathi-default-rtdb.firebaseio.com",
+    "project_id": "shaadisaathi",
+    "storage_bucket": "shaadisaathi.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:398505204881:android:4e0a9c750ed9a2abaf3330",
+        "android_client_info": {
+          "package_name": "com.gaurav.shaadisaathi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC2cNfLMSjFub63o_wDBxy7PP5riTw44QE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="8dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/voiceMessageContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxWidth="280dp"
+        android:background="@drawable/voice_message_background"
+        android:padding="12dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- Sender Name (for received messages) -->
+        <TextView
+            android:id="@+id/tvSenderName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sender Name"
+            android:textColor="@color/colorSecondary"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Voice Message Content -->
+        <LinearLayout
+            android:id="@+id/voiceContent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="4dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvSenderName">
+
+            <!-- Play/Pause Button -->
+            <ImageButton
+                android:id="@+id/btnPlayPause"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="@drawable/circle_button_bg"
+                android:src="@android:drawable/ic_media_play"
+                android:tint="@color/colorPrimary"
+                android:padding="6dp" />
+
+            <!-- Voice Wave Visualization -->
+            <LinearLayout
+                android:id="@+id/voiceWaveContainer"
+                android:layout_width="120dp"
+                android:layout_height="24dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <!-- Voice wave bars -->
+                <View
+                    android:layout_width="3dp"
+                    android:layout_height="8dp"
+                    android:layout_marginEnd="2dp"
+                    android:background="@color/colorSecondary" />
+
+                <View
+                    android:layout_width="3dp"
+                    android:layout_height="16dp"
+                    android:layout_marginEnd="2dp"
+                    android:background="@color/colorSecondary" />
+
+                <View
+                    android:layout_width="3dp"
+                    android:layout_height="12dp"
+                    android:layout_marginEnd="2dp"
+                    android:background="@color/colorSecondary" />
+
+                <View
+                    android:layout_width="3dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="2dp"
+                    android:background="@color/colorSecondary" />
+
+                <View
+                    android:layout_width="3dp"
+                    android:layout_height="6dp"
+                    android:layout_marginEnd="2dp"
+                    android:background="@color/colorSecondary" />
+
+                <View
+                    android:layout_width="3dp"
+                    android:layout_height="14dp"
+                    android:layout_marginEnd="2dp"
+                    android:background="@color/colorSecondary" />
+
+                <View
+                    android:layout_width="3dp"
+                    android:layout_height="10dp"
+                    android:layout_marginEnd="2dp"
+                    android:background="@color/colorSecondary" />
+
+                <View
+                    android:layout_width="3dp"
+                    android:layout_height="18dp"
+                    android:layout_marginEnd="2dp"
+                    android:background="@color/colorSecondary" />
+
+                <View
+                    android:layout_width="3dp"
+                    android:layout_height="8dp"
+                    android:layout_marginEnd="2dp"
+                    android:background="@color/colorSecondary" />
+
+                <View
+                    android:layout_width="3dp"
+                    android:layout_height="12dp"
+                    android:background="@color/colorSecondary" />
+
+            </LinearLayout>
+
+            <!-- Voice Duration -->
+            <TextView
+                android:id="@+id/tvVoiceDuration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0:15"
+                android:textColor="@color/colorTextPrimary"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+
+        <!-- Message Time -->
+        <TextView
+            android:id="@+id/tvTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="12:30"
+            android:textColor="@color/colorSecondary"
+            android:textSize="10sp"
+            android:layout_marginTop="4dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/voiceContent" />
+
+        <!-- Message Status (for sent messages) -->
+        <ImageView
+            android:id="@+id/ivMessageStatus"
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:src="@android:drawable/ic_menu_send"
+            android:tint="@color/colorSecondary"
+            android:visibility="gone"
+            android:layout_marginStart="4dp"
+            app:layout_constraintStart_toEndOf="@id/tvTime"
+            app:layout_constraintTop_toTopOf="@id/tvTime"
+            app:layout_constraintBottom_toBottomOf="@id/tvTime" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Progress Bar for Loading -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="@id/voiceMessageContainer"
+        app:layout_constraintTop_toTopOf="@id/voiceMessageContainer" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

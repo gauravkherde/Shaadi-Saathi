@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp"
+    app:strokeColor="@color/colorSecondary"
+    app:strokeWidth="1dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <ImageView
+            android:id="@+id/ivNotificationIcon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_notification"
+            android:tint="@color/colorPrimary"
+            android:background="@drawable/circle_button_bg"
+            android:padding="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvNotificationTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Notification Title"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/colorPrimary"
+            android:fontFamily="serif"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="8dp"
+            app:layout_constraintStart_toEndOf="@id/ivNotificationIcon"
+            app:layout_constraintEnd_toStartOf="@id/tvNotificationTime"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvNotificationTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2m ago"
+            android:textSize="12sp"
+            android:textColor="@color/colorSecondary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvNotificationMessage"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Notification message content goes here..."
+            android:textSize="14sp"
+            android:textColor="@color/colorTextPrimary"
+            android:maxLines="3"
+            android:ellipsize="end"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="4dp"
+            app:layout_constraintStart_toEndOf="@id/ivNotificationIcon"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvNotificationTitle" />
+
+        <View
+            android:id="@+id/unreadIndicator"
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:background="@drawable/circle_button_bg"
+            android:backgroundTint="@color/colorSecondary"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/tvNotificationMessage" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

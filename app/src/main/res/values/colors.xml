@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Indian Wedding Color Palette -->
+    <color name="colorPrimary">#8B0000</color>         <!-- Deep Maroon -->
+    <color name="colorPrimaryVariant">#5D0000</color>  <!-- Darker Maroon -->
+    <color name="colorSecondary">#FF6B35</color>       <!-- Warm Orange -->
+    <color name="colorSecondaryVariant">#CC5528</color><!-- Darker Orange -->
+    <color name="colorAccent">#FFD700</color>          <!-- Gold -->
+
+    <!-- Background Colors -->
+    <color name="colorBackground">#FFF8DC</color>      <!-- Cornsilk -->
+    <color name="colorSurface">#FFFFFF</color>         <!-- White -->
+
+    <!-- Text Colors -->
+    <color name="colorTextPrimary">#333333</color>     <!-- Dark Gray -->
+    <color name="colorTextSecondary">#666666</color>   <!-- Medium Gray -->
+
+    <!-- Status Colors -->
+    <color name="colorSuccess">#4CAF50</color>         <!-- Green -->
+    <color name="colorError">#F44336</color>           <!-- Red -->
+    <color name="colorWarning">#FF9800</color>         <!-- Orange -->
+
+    <!-- System Colors -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="transparent">#00000000</color>
+</resources>

@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorBackground"
+    android:padding="24dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Welcome Section -->
+        <TextView
+            android:id="@+id/tvGuestWelcome"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Welcome Guest!"
+            android:textColor="@color/colorPrimary"
+            android:textSize="28sp"
+            android:fontFamily="serif"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tvGuestSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Join the wedding celebration"
+            android:textColor="@color/colorSecondary"
+            android:textSize="16sp"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Welcome Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="8dp"
+            app:cardBackgroundColor="@color/colorAccent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp"
+                android:gravity="center">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🎉"
+                    android:textSize="32sp"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Welcome to the Wedding!"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/colorPrimary"
+                    android:fontFamily="serif"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Stay connected with events, photos &amp; chat"
+                    android:textSize="14sp"
+                    android:textColor="@color/colorSecondary"
+                    android:textAlignment="center" />
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Phase 3 Features Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Stay Connected"
+            android:textColor="@color/colorPrimary"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:fontFamily="serif"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Chat & Photo Buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnChatRooms"
+                style="@style/ElevatedButton"
+                android:text="Chat Rooms"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:drawableStart="@drawable/ic_chat"
+                android:drawablePadding="8dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPhotoGallery"
+                style="@style/ElevatedButton"
+                android:text="Photo Gallery"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:drawableStart="@drawable/ic_gallery"
+                android:drawablePadding="8dp" />
+
+        </LinearLayout>
+
+        <!-- Event Features Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Event Information"
+            android:textColor="@color/colorPrimary"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:fontFamily="serif"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Main Action Buttons -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnViewEvents"
+            style="@style/ElevatedButton"
+            android:text="View Events"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:drawableStart="@android:drawable/ic_menu_today"
+            android:drawablePadding="8dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRSVP"
+            style="@style/ElevatedButton"
+            android:text="RSVP Status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="32dp"
+            android:drawableStart="@android:drawable/ic_menu_agenda"
+            android:drawablePadding="8dp" />
+
+        <!-- Logout Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLogoutGuest"
+            style="@style/ElevatedButton"
+            android:text="Logout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:backgroundTint="@android:color/holo_red_dark" />
+
+    </LinearLayout>
+</ScrollView>

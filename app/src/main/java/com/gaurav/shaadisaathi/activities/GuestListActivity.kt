@@ -1,79 +1,64 @@
 package com.gaurav.shaadisaathi.activities
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import com.gaurav.shaadisaathi.R
 import com.gaurav.shaadisaathi.adapters.GuestListAdapter
 import com.gaurav.shaadisaathi.databinding.ActivityGuestListBinding
 import com.gaurav.shaadisaathi.models.Guest
-import com.gaurav.shaadisaathi.utils.CSVExporter
-import com.gaurav.shaadisaathi.utils.InvitationManager
+import com.gaurav.shaadisaathi.repository.GuestRepository
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 class GuestListActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityGuestListBinding
-    private lateinit var auth: FirebaseAuth
-    private val firestore = FirebaseFirestore.getInstance()
     private lateinit var guestAdapter: GuestListAdapter
     private val guestList = mutableListOf<Guest>()
-    private val originalGuestList = mutableListOf<Guest>()
-    private val TAG = "GuestListActivity"
+    private val filteredGuestList = mutableListOf<Guest>()
+    private val guestRepository = GuestRepository()
+    private val auth = FirebaseAuth.getInstance()
 
-    private var currentFilter = "all" // all, confirmed, pending, declined
-    private var currentCategory = "all" // all, family, friends, colleagues, others
-    private var additionalFilters = mutableSetOf<String>() // vip, plus_one, invitation_sent
+    private var currentCategoryFilter = "all"
+    private var currentRSVPFilter = "all"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityGuestListBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        auth = FirebaseAuth.getInstance()
-
         setupToolbar()
         setupRecyclerView()
         setupClickListeners()
         loadGuests()
-
-        Log.d(TAG, "GuestListActivity initialized")
     }
 
     private fun setupToolbar() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.apply {
-            title = "Guest Management"
             setDisplayHomeAsUpEnabled(true)
-            setDisplayShowHomeEnabled(true)
+            title = "Guest List"
         }
     }
 
     private fun setupRecyclerView() {
         guestAdapter = GuestListAdapter(
-            guests = guestList,
-            onItemClick = { guest ->
+            guests = filteredGuestList,
+            onGuestClick = { guest: Guest ->
                 openGuestDetail(guest)
             },
-            onEditClick = { guest ->
-                editGuest(guest)
+            onCallClick = { guest: Guest ->
+                callGuest(guest)
             },
-            onDeleteClick = { guest ->
-                showDeleteConfirmation(guest)
-            },
-            onRSVPClick = { guest ->
-                updateRSVPStatus(guest)
+            onEmailClick = { guest: Guest ->
+                emailGuest(guest)
             }
         )
 
@@ -84,261 +69,167 @@ class GuestListActivity : AppCompatActivity() {
     }
 
     private fun setupClickListeners() {
+        // SwipeRefresh listener
+        binding.swipeRefreshLayout.setOnRefreshListener {
+            loadGuests()
+        }
+
+        // Add Guest FAB
         binding.fabAddGuest.setOnClickListener {
             val intent = Intent(this, AddGuestActivity::class.java)
             startActivity(intent)
         }
 
-        binding.btnImportContacts.setOnClickListener {
-            val intent = Intent(this, ImportContactsActivity::class.java)
-            startActivity(intent)
+        // Category filter listeners
+        binding.chipAll.setOnClickListener {
+            filterGuestsByCategory("all")
+            currentCategoryFilter = "all"
+        }
+        binding.chipFamily.setOnClickListener {
+            filterGuestsByCategory("family")
+            currentCategoryFilter = "family"
+        }
+        binding.chipFriends.setOnClickListener {
+            filterGuestsByCategory("friends")
+            currentCategoryFilter = "friends"
+        }
+        binding.chipColleagues.setOnClickListener {
+            filterGuestsByCategory("colleagues")
+            currentCategoryFilter = "colleagues"
         }
 
-        // RSVP Status Filter Chips
-        binding.chipAll.setOnClickListener { filterGuests("all") }
-        binding.chipConfirmed.setOnClickListener { filterGuests("confirmed") }
-        binding.chipPending.setOnClickListener { filterGuests("pending") }
-        binding.chipDeclined.setOnClickListener { filterGuests("declined") }
-
-        // Category Filter Chips
-        binding.chipFamily.setOnClickListener { filterByCategory("family") }
-        binding.chipFriends.setOnClickListener { filterByCategory("friends") }
-        binding.chipColleagues.setOnClickListener { filterByCategory("colleagues") }
-        binding.chipOthers.setOnClickListener { filterByCategory("others") }
-
-        // Reset filters
-        binding.chipAll.setOnLongClickListener {
-            resetAllFilters()
-            true
+        // RSVP filter listeners
+        binding.chipAllRSVP.setOnClickListener {
+            filterGuestsByRSVP("all")
+            currentRSVPFilter = "all"
         }
-
-        // Refresh gesture
-        binding.swipeRefreshLayout?.setOnRefreshListener {
-            loadGuests()
+        binding.chipConfirmed.setOnClickListener {
+            filterGuestsByRSVP("confirmed")
+            currentRSVPFilter = "confirmed"
+        }
+        binding.chipPending.setOnClickListener {
+            filterGuestsByRSVP("pending")
+            currentRSVPFilter = "pending"
+        }
+        binding.chipDeclined.setOnClickListener {
+            filterGuestsByRSVP("declined")
+            currentRSVPFilter = "declined"
         }
     }
 
     private fun loadGuests() {
-        val currentUser = auth.currentUser
-        if (currentUser == null) {
-            Toast.makeText(this, "Please login to view guests", Toast.LENGTH_SHORT).show()
-            finish()
-            return
-        }
+        binding.swipeRefreshLayout.isRefreshing = true
 
-        binding.progressBar.visibility = View.VISIBLE
-        binding.swipeRefreshLayout?.isRefreshing = true
-
-        Log.d(TAG, "Loading guests for host: ${currentUser.uid}")
-
-        firestore.collection("guests")
-            .whereEqualTo("hostId", currentUser.uid)
-            .orderBy("name", Query.Direction.ASCENDING)
-            .addSnapshotListener { snapshots, e ->
-                if (isFinishing || isDestroyed) {
-                    Log.w(TAG, "Activity finishing/destroyed, ignoring Firestore callback")
-                    return@addSnapshotListener
+        lifecycleScope.launch {
+            try {
+                val currentUser = auth.currentUser
+                if (currentUser == null) {
+                    Toast.makeText(this@GuestListActivity, "Please login first", Toast.LENGTH_SHORT).show()
+                    finish()
+                    return@launch
                 }
 
-                runOnUiThread {
-                    if (isFinishing || isDestroyed) return@runOnUiThread
-
-                    binding.progressBar.visibility = View.GONE
-                    binding.swipeRefreshLayout?.isRefreshing = false
-
-                    if (e != null) {
-                        Log.e(TAG, "Error loading guests", e)
-
-                        when {
-                            e.message?.contains("PERMISSION_DENIED") == true -> {
-                                showFirestorePermissionErrorDialog()
-                            }
-                            e.message?.contains("permission") == true -> {
-                                Toast.makeText(this@GuestListActivity, "Permission denied. Check Firestore rules.", Toast.LENGTH_LONG).show()
-                            }
-                            e.message?.contains("Missing or insufficient permissions") == true -> {
-                                showFirestorePermissionErrorDialog()
-                            }
-                            else -> {
-                                Toast.makeText(this@GuestListActivity, "Error loading guests: ${e.message}", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                        return@runOnUiThread
-                    }
-
-                    originalGuestList.clear()
-                    val validGuests = mutableListOf<Guest>()
-
-                    snapshots?.documents?.forEach { doc ->
-                        try {
-                            val guest = doc.toObject(Guest::class.java)
-                            guest?.let {
-                                validGuests.add(it)
-                                Log.d(TAG, "Loaded guest: ${it.name}")
-                            }
-                        } catch (ex: Exception) {
-                            Log.w(TAG, "Skipping invalid guest document: ${doc.id}")
-                        }
-                    }
-
-                    validGuests.sortBy { it.name.lowercase() }
-                    originalGuestList.addAll(validGuests)
+                val result = guestRepository.getAllGuests()
+                if (result.isSuccess) {
+                    val guests = result.getOrNull() ?: emptyList()
+                    guestList.clear()
+                    guestList.addAll(guests.sortedBy { it.name })
 
                     // Apply current filters
-                    applyCurrentFilters()
-                    updateStats()
+                    applyFilters()
 
-                    Log.d(TAG, "Total guests loaded: ${originalGuestList.size}")
+                    updateEmptyState(filteredGuestList.isEmpty())
+                } else {
+                    Toast.makeText(this@GuestListActivity, "Error loading guests", Toast.LENGTH_SHORT).show()
                 }
-            }
-    }
-
-    private fun showFirestorePermissionErrorDialog() {
-        if (isFinishing || isDestroyed) {
-            Log.w(TAG, "Activity finishing/destroyed, cannot show Firestore permission dialog")
-            return
-        }
-
-        try {
-            runOnUiThread {
-                if (!isFinishing && !isDestroyed) {
-                    AlertDialog.Builder(this)
-                        .setTitle("Firestore Permission Error")
-                        .setMessage("Cannot access wedding guests due to database security rules.\n\nThis means:\n• Firestore rules need updating\n• User authentication may have expired\n\nPlease check Firebase Console → Firestore Database → Rules")
-                        .setPositiveButton("Retry") { _, _ ->
-                            if (!isFinishing && !isDestroyed) {
-                                loadGuests()
-                            }
-                        }
-                        .setNegativeButton("Close") { _, _ ->
-                            if (!isFinishing && !isDestroyed) {
-                                finish()
-                            }
-                        }
-                        .show()
-                }
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error showing Firestore permission dialog", e)
-        }
-    }
-
-    private fun filterGuests(status: String) {
-        currentFilter = status
-        updateChipSelection()
-        applyCurrentFilters()
-    }
-
-    private fun filterByCategory(category: String) {
-        currentCategory = category
-        updateCategoryChipSelection()
-        applyCurrentFilters()
-    }
-
-    private fun applyCurrentFilters() {
-        var filteredList = originalGuestList.toList()
-
-        // Apply RSVP status filter
-        if (currentFilter != "all") {
-            filteredList = filteredList.filter { guest ->
-                guest.rsvpStatus == currentFilter
+            } catch (e: Exception) {
+                Toast.makeText(this@GuestListActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                binding.swipeRefreshLayout.isRefreshing = false
             }
         }
+    }
+
+    private fun filterGuestsByCategory(category: String) {
+        currentCategoryFilter = category
+        applyFilters()
+    }
+
+    private fun filterGuestsByRSVP(status: String) {
+        currentRSVPFilter = status
+        applyFilters()
+    }
+
+    private fun applyFilters() {
+        var filtered = guestList.toList()
 
         // Apply category filter
-        if (currentCategory != "all") {
-            filteredList = filteredList.filter { guest ->
-                guest.category == currentCategory
+        if (currentCategoryFilter != "all") {
+            filtered = filtered.filter { guest ->
+                guest.category.lowercase() == currentCategoryFilter.lowercase()
             }
         }
 
-        // Apply additional filters
-        additionalFilters.forEach { filter ->
-            filteredList = when (filter) {
-                "vip" -> filteredList.filter { it.isVip }
-                "plus_one" -> filteredList.filter { it.hasPlusOne }
-                "invitation_sent" -> filteredList.filter { it.invitationSent }
-                else -> filteredList
+        // Apply RSVP filter
+        if (currentRSVPFilter != "all") {
+            filtered = filtered.filter { guest ->
+                guest.rsvpStatus.lowercase() == currentRSVPFilter.lowercase()
             }
         }
 
-        // Update the displayed list
-        guestList.clear()
-        guestList.addAll(filteredList)
-        guestAdapter.notifyDataSetChanged()
-        updateEmptyState(filteredList.isEmpty())
+        filteredGuestList.clear()
+        filteredGuestList.addAll(filtered)
+        guestAdapter.updateGuests(filteredGuestList)
 
-        Log.d(TAG, "Applied filters - showing ${filteredList.size} out of ${originalGuestList.size} guests")
+        updateEmptyState(filteredGuestList.isEmpty())
     }
 
-    private fun updateChipSelection() {
-        // Reset all RSVP chips
-        binding.chipAll.isChecked = false
-        binding.chipConfirmed.isChecked = false
-        binding.chipPending.isChecked = false
-        binding.chipDeclined.isChecked = false
-
-        // Set selected chip
-        when (currentFilter) {
-            "all" -> binding.chipAll.isChecked = true
-            "confirmed" -> binding.chipConfirmed.isChecked = true
-            "pending" -> binding.chipPending.isChecked = true
-            "declined" -> binding.chipDeclined.isChecked = true
+    private fun updateEmptyState(isEmpty: Boolean) {
+        if (isEmpty) {
+            binding.layoutEmptyState.visibility = android.view.View.VISIBLE
+            binding.recyclerViewGuests.visibility = android.view.View.GONE
+        } else {
+            binding.layoutEmptyState.visibility = android.view.View.GONE
+            binding.recyclerViewGuests.visibility = android.view.View.VISIBLE
         }
-    }
-
-    private fun updateCategoryChipSelection() {
-        binding.chipFamily.isChecked = currentCategory == "family"
-        binding.chipFriends.isChecked = currentCategory == "friends"
-        binding.chipColleagues.isChecked = currentCategory == "colleagues"
-        binding.chipOthers.isChecked = currentCategory == "others"
-    }
-
-    private fun resetAllFilters() {
-        currentFilter = "all"
-        currentCategory = "all"
-        additionalFilters.clear()
-        updateChipSelection()
-        updateCategoryChipSelection()
-        applyCurrentFilters()
-        Toast.makeText(this, "All filters cleared", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun updateStats() {
-        val totalGuests = originalGuestList.size
-        val confirmedCount = originalGuestList.count { it.rsvpStatus == "confirmed" }
-        val pendingCount = originalGuestList.count { it.rsvpStatus == "pending" }
-        val declinedCount = originalGuestList.count { it.rsvpStatus == "declined" }
-        val totalAttending = originalGuestList.filter { it.rsvpStatus == "confirmed" }
-            .sumOf { it.getTotalGuests() }
-
-        binding.tvTotalGuests.text = "Total: $totalGuests"
-        binding.tvConfirmedCount.text = "Confirmed: $confirmedCount"
-        binding.tvPendingCount.text = "Pending: $pendingCount"
-        binding.tvDeclinedCount.text = "Declined: $declinedCount"
-        binding.tvTotalAttending.text = "Attending: $totalAttending"
-
-        // Update chip badges with counts
-        binding.chipConfirmed.text = "Confirmed ($confirmedCount)"
-        binding.chipPending.text = "Pending ($pendingCount)"
-        binding.chipDeclined.text = "Declined ($declinedCount)"
-
-        // Update category counts
-        val familyCount = originalGuestList.count { it.category == "family" }
-        val friendsCount = originalGuestList.count { it.category == "friends" }
-        val colleaguesCount = originalGuestList.count { it.category == "colleagues" }
-        val othersCount = originalGuestList.count { it.category == "others" }
-
-        binding.chipFamily.text = "Family ($familyCount)"
-        binding.chipFriends.text = "Friends ($friendsCount)"
-        binding.chipColleagues.text = "Colleagues ($colleaguesCount)"
-        binding.chipOthers.text = "Others ($othersCount)"
     }
 
     private fun openGuestDetail(guest: Guest) {
         val intent = Intent(this, GuestDetailActivity::class.java)
         intent.putExtra("guestId", guest.id)
         startActivity(intent)
+    }
+
+    private fun callGuest(guest: Guest) {
+        if (guest.phone.isNotEmpty()) {
+            val intent = Intent(Intent.ACTION_DIAL).apply {
+                data = Uri.parse("tel:${guest.phone}")
+            }
+            try {
+                startActivity(intent)
+            } catch (e: Exception) {
+                Toast.makeText(this, "Unable to make call", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(this, "No phone number available", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun emailGuest(guest: Guest) {
+        if (guest.email.isNotEmpty()) {
+            val intent = Intent(Intent.ACTION_SENDTO).apply {
+                data = Uri.parse("mailto:${guest.email}")
+                putExtra(Intent.EXTRA_SUBJECT, "Wedding Invitation")
+                putExtra(Intent.EXTRA_TEXT, "You are cordially invited to our wedding!")
+            }
+            try {
+                startActivity(intent)
+            } catch (e: Exception) {
+                Toast.makeText(this, "No email app available", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(this, "No email address available", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun editGuest(guest: Guest) {
@@ -348,9 +239,9 @@ class GuestListActivity : AppCompatActivity() {
     }
 
     private fun showDeleteConfirmation(guest: Guest) {
-        AlertDialog.Builder(this)
+        androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle("Delete Guest")
-            .setMessage("Are you sure you want to delete ${guest.name}?\n\nThis action cannot be undone and will remove all associated data including RSVP status and notes.")
+            .setMessage("Are you sure you want to delete ${guest.name}?")
             .setPositiveButton("Delete") { _, _ ->
                 deleteGuest(guest)
             }
@@ -359,37 +250,33 @@ class GuestListActivity : AppCompatActivity() {
     }
 
     private fun deleteGuest(guest: Guest) {
-        firestore.collection("guests").document(guest.id)
-            .delete()
-            .addOnSuccessListener {
-                Toast.makeText(this, "${guest.name} deleted successfully", Toast.LENGTH_SHORT).show()
-                Log.d(TAG, "Guest deleted: ${guest.id}")
+        lifecycleScope.launch {
+            try {
+                val result = guestRepository.deleteGuest(guest.id)
+                if (result.isSuccess) {
+                    Toast.makeText(this@GuestListActivity, "Guest deleted successfully", Toast.LENGTH_SHORT).show()
+                    loadGuests() // Refresh the list
+                } else {
+                    Toast.makeText(this@GuestListActivity, "Error deleting guest", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@GuestListActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             }
-            .addOnFailureListener { e ->
-                Log.e(TAG, "Error deleting guest", e)
-                Toast.makeText(this, "Error deleting guest: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
+        }
     }
 
     private fun updateRSVPStatus(guest: Guest) {
-        val options = arrayOf("Confirmed", "Pending", "Declined")
-        val currentIndex = when (guest.rsvpStatus) {
-            "confirmed" -> 0
-            "pending" -> 1
+        val statuses = arrayOf("Pending", "Confirmed", "Declined")
+        val currentIndex = when (guest.rsvpStatus.lowercase()) {
+            "confirmed" -> 1
             "declined" -> 2
-            else -> 1
+            else -> 0
         }
 
-        AlertDialog.Builder(this)
+        androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle("Update RSVP Status for ${guest.name}")
-            .setSingleChoiceItems(options, currentIndex) { dialog, which ->
-                val newStatus = when (which) {
-                    0 -> "confirmed"
-                    1 -> "pending"
-                    2 -> "declined"
-                    else -> "pending"
-                }
-
+            .setSingleChoiceItems(statuses, currentIndex) { dialog, which ->
+                val newStatus = statuses[which].lowercase()
                 updateGuestRSVP(guest, newStatus)
                 dialog.dismiss()
             }
@@ -398,49 +285,106 @@ class GuestListActivity : AppCompatActivity() {
     }
 
     private fun updateGuestRSVP(guest: Guest, newStatus: String) {
-        val updates = mapOf(
-            "rsvpStatus" to newStatus,
-            "rsvpResponseAt" to System.currentTimeMillis(),
-            "updatedAt" to System.currentTimeMillis()
-        )
+        lifecycleScope.launch {
+            try {
+                val updatedGuest = guest.copy(
+                    rsvpStatus = newStatus,
+                    rsvpResponseAt = if (newStatus != "pending") System.currentTimeMillis() else 0L,
+                    updatedAt = System.currentTimeMillis()
+                )
 
-        firestore.collection("guests").document(guest.id)
-            .update(updates)
-            .addOnSuccessListener {
-                Toast.makeText(this, "RSVP updated for ${guest.name}", Toast.LENGTH_SHORT).show()
-                Log.d(TAG, "RSVP updated: ${guest.id} -> $newStatus")
+                val result = guestRepository.updateGuest(updatedGuest)
+                if (result.isSuccess) {
+                    Toast.makeText(this@GuestListActivity, "RSVP status updated", Toast.LENGTH_SHORT).show()
+                    loadGuests() // Refresh the list
+                } else {
+                    Toast.makeText(this@GuestListActivity, "Error updating RSVP", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@GuestListActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             }
-            .addOnFailureListener { e ->
-                Log.e(TAG, "Error updating RSVP", e)
-                Toast.makeText(this, "Error updating RSVP: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
+        }
     }
 
-    private fun updateEmptyState(isEmpty: Boolean) {
-        if (isEmpty) {
-            binding.layoutEmptyState.visibility = View.VISIBLE
-            binding.recyclerViewGuests.visibility = View.GONE
+    private fun exportGuestList() {
+        lifecycleScope.launch {
+            try {
+                // Create CSV content
+                val csvContent = StringBuilder()
+                csvContent.append("Name,Category,Phone,Email,RSVP Status,Plus One\n")
 
-            val message = when {
-                currentFilter != "all" && currentCategory != "all" ->
-                    "No guests found with current filters\n\n${currentFilter.replaceFirstChar { it.uppercase() }} guests in ${currentCategory.replaceFirstChar { it.uppercase() }} category"
-                currentFilter != "all" ->
-                    "No ${currentFilter} guests found"
-                currentCategory != "all" ->
-                    "No guests found in ${currentCategory.replaceFirstChar { it.uppercase() }} category"
-                additionalFilters.isNotEmpty() ->
-                    "No guests match the selected filters"
-                originalGuestList.isEmpty() ->
-                    "No guests added yet.\n\nStart by adding your first guest or importing from contacts!"
-                else ->
-                    "No guests match your current filters"
+                for (guest in guestList) {
+                    csvContent.append("${guest.name},")
+                    csvContent.append("${guest.category},")
+                    csvContent.append("${guest.phone},")
+                    csvContent.append("${guest.email},")
+                    csvContent.append("${guest.rsvpStatus},")
+                    csvContent.append("${if (guest.hasPlusOne) "Yes" else "No"}\n")
+                }
+
+                // Create share intent
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, csvContent.toString())
+                    putExtra(Intent.EXTRA_SUBJECT, "Wedding Guest List")
+                }
+
+                startActivity(Intent.createChooser(intent, "Export Guest List"))
+
+            } catch (e: Exception) {
+                Toast.makeText(this@GuestListActivity, "Error exporting guest list", Toast.LENGTH_SHORT).show()
             }
-
-            binding.tvEmptyMessage.text = message
-        } else {
-            binding.layoutEmptyState.visibility = View.GONE
-            binding.recyclerViewGuests.visibility = View.VISIBLE
         }
+    }
+
+    private fun showGuestStats() {
+        val totalGuests = guestList.size
+        val confirmedGuests = guestList.count { it.rsvpStatus == "confirmed" }
+        val pendingGuests = guestList.count { it.rsvpStatus == "pending" }
+        val declinedGuests = guestList.count { it.rsvpStatus == "declined" }
+
+        // FIX: Alternative to sumOf for older Kotlin versions
+        var totalWithPlusOnes = 0
+        for (guest in guestList) {
+            totalWithPlusOnes += if (guest.hasPlusOne && guest.plusOneConfirmed) 2 else 1
+        }
+
+        // Alternative using fold
+        // val totalWithPlusOnes = guestList.fold(0) { acc, guest ->
+        //     acc + if (guest.hasPlusOne && guest.plusOneConfirmed) 2 else 1
+        // }
+
+        val responseRate = if (totalGuests > 0) {
+            ((confirmedGuests + declinedGuests) * 100) / totalGuests
+        } else {
+            0
+        }
+
+        val message = """
+        Guest Statistics:
+        
+        Total Guests: $totalGuests
+        Total Attendees (with +1): $totalWithPlusOnes
+        
+        RSVP Status:
+        • Confirmed: $confirmedGuests
+        • Pending: $pendingGuests  
+        • Declined: $declinedGuests
+        
+        Response Rate: $responseRate%
+    """.trimIndent()
+
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Guest Statistics")
+            .setMessage(message)
+            .setPositiveButton("OK", null)
+            .show()
+    }
+
+
+    private fun importContacts() {
+        val intent = Intent(this, ImportContactsActivity::class.java)
+        startActivity(intent)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -450,256 +394,37 @@ class GuestListActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            android.R.id.home -> {
-                finish()
+            R.id.action_import -> {
+                importContacts()
                 true
             }
-            R.id.action_export_csv -> {
+            R.id.action_export -> {
                 exportGuestList()
                 true
             }
-            R.id.action_send_invitations -> {
-                sendBulkInvitations()
-                true
-            }
-            R.id.action_guest_stats -> {
-                showGuestStatistics()
+            R.id.action_stats -> {
+                showGuestStats()
                 true
             }
             R.id.action_filter -> {
-                showAdvancedFilterDialog()
+                // Filter options are already handled by chips
+                true
+            }
+            android.R.id.home -> {
+                finish()
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
-    private fun exportGuestList() {
-        if (originalGuestList.isEmpty()) {
-            Toast.makeText(this, "No guests to export", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        lifecycleScope.launch {
-            try {
-                val result = CSVExporter.exportGuestsToCSV(this@GuestListActivity, originalGuestList)
-                if (result.isSuccess) {
-                    val uri = result.getOrNull()
-                    uri?.let {
-                        CSVExporter.shareCSV(this@GuestListActivity, it, "wedding_guests.csv")
-                        Toast.makeText(this@GuestListActivity, "Guest list exported successfully!", Toast.LENGTH_SHORT).show()
-                    }
-                } else {
-                    Toast.makeText(this@GuestListActivity, "Error exporting CSV: ${result.exceptionOrNull()?.message}", Toast.LENGTH_LONG).show()
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error exporting guest list", e)
-                Toast.makeText(this@GuestListActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    private fun sendBulkInvitations() {
-        val pendingGuests = originalGuestList.filter { !it.invitationSent && it.rsvpStatus == "pending" && it.email.isNotEmpty() }
-        if (pendingGuests.isEmpty()) {
-            Toast.makeText(this, "No pending invitations to send.\n\nMake sure guests have email addresses and haven't received invitations yet.", Toast.LENGTH_LONG).show()
-            return
-        }
-
-        AlertDialog.Builder(this)
-            .setTitle("Send Bulk Invitations")
-            .setMessage("Send invitations to ${pendingGuests.size} guests?\n\nThis will send digital invitations via email to all guests who:\n• Haven't received an invitation yet\n• Have RSVP status 'Pending'\n• Have email addresses")
-            .setPositiveButton("Send Invitations") { _, _ ->
-                performBulkInvitationSending(pendingGuests)
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
-    }
-
-    private fun performBulkInvitationSending(pendingGuests: List<Guest>) {
-        lifecycleScope.launch {
-            try {
-                // Create wedding invitation content
-                val eventDetails = createWeddingInvitationContent()
-
-                val result = InvitationManager.sendBulkInvitations(
-                    this@GuestListActivity,
-                    pendingGuests,
-                    eventDetails
-                )
-
-                if (result.isSuccess) {
-                    val sentCount = result.getOrDefault(0)
-
-                    AlertDialog.Builder(this@GuestListActivity)
-                        .setTitle("Invitations Sent!")
-                        .setMessage("Successfully sent invitations to $sentCount guests!\n\nGuests will receive email invitations and their invitation status will be updated.")
-                        .setPositiveButton("OK") { _, _ ->
-                            loadGuests() // Refresh to show updated invitation status
-                        }
-                        .show()
-                } else {
-                    Toast.makeText(this@GuestListActivity, "Error sending invitations: ${result.exceptionOrNull()?.message}", Toast.LENGTH_LONG).show()
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error sending bulk invitations", e)
-                Toast.makeText(this@GuestListActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    private fun createWeddingInvitationContent(): String {
-        return """
-            🎉 You're Invited to Our Wedding! 🎉
-            
-            We are delighted to invite you to celebrate our special day with us.
-            
-            📅 Date: [Your Wedding Date]
-            🕐 Time: [Wedding Time]
-            📍 Venue: [Wedding Venue]
-            
-            Your presence will make our day even more meaningful and joyous.
-            
-            Please RSVP by [RSVP Date] by responding to this email or contacting us directly.
-            
-            We can't wait to celebrate with you!
-            
-            With love and excitement,
-            [Bride & Groom Names]
-            
-            ---
-            This invitation was sent through ShaadiSaathi Wedding App
-        """.trimIndent()
-    }
-
-    private fun showGuestStatistics() {
-        // If you have a separate GuestStatsActivity
-        val intent = Intent(this, GuestStatsActivity::class.java)
-        startActivity(intent)
-
-        // Alternative: Show statistics in a dialog
-        // showStatisticsDialog()
-    }
-
-    private fun showStatisticsDialog() {
-        val stats = calculateGuestStatistics()
-
-        val message = """
-            📊 Guest Statistics
-            
-            Total Guests: ${stats.totalGuests}
-            Total Attending: ${stats.totalAttending}
-            
-            RSVP Breakdown:
-            • Confirmed: ${stats.confirmedGuests}
-            • Pending: ${stats.pendingGuests} 
-            • Declined: ${stats.declinedGuests}
-            
-            Category Breakdown:
-            • Family: ${stats.familyCount}
-            • Friends: ${stats.friendsCount}
-            • Colleagues: ${stats.colleaguesCount}
-            • Others: ${stats.othersCount}
-            
-            Additional Info:
-            • VIP Guests: ${stats.vipGuests}
-            • Plus One Guests: ${stats.plusOneGuests}
-            • Invitations Sent: ${stats.invitationsSent}
-        """.trimIndent()
-
-        AlertDialog.Builder(this)
-            .setTitle("Guest Statistics")
-            .setMessage(message)
-            .setPositiveButton("Export Statistics") { _, _ ->
-                exportStatistics()
-            }
-            .setNegativeButton("Close", null)
-            .show()
-    }
-
-    private fun calculateGuestStatistics(): GuestStats {
-        return GuestStats(
-            totalGuests = originalGuestList.size,
-            confirmedGuests = originalGuestList.count { it.rsvpStatus == "confirmed" },
-            pendingGuests = originalGuestList.count { it.rsvpStatus == "pending" },
-            declinedGuests = originalGuestList.count { it.rsvpStatus == "declined" },
-            totalAttending = originalGuestList.filter { it.rsvpStatus == "confirmed" }.sumOf { it.getTotalGuests() },
-            familyCount = originalGuestList.count { it.category == "family" },
-            friendsCount = originalGuestList.count { it.category == "friends" },
-            colleaguesCount = originalGuestList.count { it.category == "colleagues" },
-            othersCount = originalGuestList.count { it.category == "others" },
-            vipGuests = originalGuestList.count { it.isVip },
-            plusOneGuests = originalGuestList.count { it.hasPlusOne },
-            invitationsSent = originalGuestList.count { it.invitationSent }
-        )
-    }
-
-    data class GuestStats(
-        val totalGuests: Int,
-        val confirmedGuests: Int,
-        val pendingGuests: Int,
-        val declinedGuests: Int,
-        val totalAttending: Int,
-        val familyCount: Int,
-        val friendsCount: Int,
-        val colleaguesCount: Int,
-        val othersCount: Int,
-        val vipGuests: Int,
-        val plusOneGuests: Int,
-        val invitationsSent: Int
-    )
-
-    private fun exportStatistics() {
-        lifecycleScope.launch {
-            try {
-                val result = CSVExporter.exportGuestStatisticsToCSV(this@GuestListActivity, originalGuestList)
-                if (result.isSuccess) {
-                    val uri = result.getOrNull()
-                    uri?.let {
-                        CSVExporter.shareCSV(this@GuestListActivity, it, "guest_statistics.csv")
-                        Toast.makeText(this@GuestListActivity, "Statistics exported successfully!", Toast.LENGTH_SHORT).show()
-                    }
-                } else {
-                    Toast.makeText(this@GuestListActivity, "Error exporting statistics", Toast.LENGTH_SHORT).show()
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error exporting statistics", e)
-                Toast.makeText(this@GuestListActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    private fun showAdvancedFilterDialog() {
-        // Create and show advanced filter dialog
-        val dialogView = layoutInflater.inflate(R.layout.dialog_guest_filter, null)
-
-        val dialog = AlertDialog.Builder(this)
-            .setView(dialogView)
-            .create()
-
-        // Setup filter dialog interactions
-        // This would require additional implementation based on dialog_guest_filter.xml
-
-        dialog.show()
-    }
-
     override fun onResume() {
         super.onResume()
-        // Refresh data when returning from other activities
-        if (::guestAdapter.isInitialized) {
-            loadGuests()
-        }
+        loadGuests() // Refresh the list when returning from other activities
     }
 
-    override fun onDestroy() {
-        Log.d(TAG, "GuestListActivity being destroyed")
-
-        try {
-            // Cancel any pending operations or listeners
-        } catch (e: Exception) {
-            Log.e(TAG, "Error cleaning up resources", e)
-        }
-
-        super.onDestroy()
+    override fun onSupportNavigateUp(): Boolean {
+        finish()
+        return true
     }
 }

@@ -3,137 +3,154 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/colorBackground">
+    android:layout_height="match_parent">
 
-    <!-- Google Map Fragment -->
+    <!-- Map Fragment -->
     <fragment
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context=".fragments.VendorMapFragment" />
+        android:layout_height="match_parent" />
 
     <!-- Search Bar -->
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        app:cardCornerRadius="25dp"
-        app:cardElevation="6dp">
+        app:cardCornerRadius="8dp"
+        app:cardElevation="4dp">
 
-        <LinearLayout
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etSearchVendors"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="12dp">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="12dp"
-                android:src="@drawable/ic_search"
-                app:tint="@color/colorSecondary" />
-
-            <EditText
-                android:id="@+id/etSearchVendors"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@android:color/transparent"
-                android:hint="Search vendors near you..."
-                android:textColorHint="@color/colorSecondary"
-                android:textSize="16sp" />
-
-            <ImageButton
-                android:id="@+id/btnCurrentLocation"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="8dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_my_location"
-                app:tint="@color/colorPrimary" />
-
-        </LinearLayout>
+            android:layout_height="56dp"
+            android:background="@android:color/transparent"
+            android:drawableStart="@drawable/ic_search"
+            android:drawablePadding="12dp"
+            android:hint="Search vendors..."
+            android:imeOptions="actionSearch"
+            android:inputType="text"
+            android:padding="16dp"
+            android:singleLine="true" />
 
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Vendor Category Filter -->
-    <HorizontalScrollView
+    <!-- Category Filter Chips -->
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="80dp"
         android:layout_marginHorizontal="16dp"
-        android:scrollbars="none">
+        android:layout_marginTop="80dp"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="4dp">
 
-        <LinearLayout
-            android:id="@+id/layoutCategoryFilter"
-            android:layout_width="wrap_content"
+        <com.google.android.material.chip.ChipGroup
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="8dp">
+            android:padding="8dp"
+            app:singleSelection="true">
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipAll"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
                 android:checked="true"
                 android:text="All"
-                app:chipBackgroundColor="@color/colorPrimary"
-                app:chipIcon="@drawable/ic_vendor"
-                app:chipIconTint="@color/colorAccent" />
+                app:chipBackgroundColor="@drawable/chip_background_selector" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipPhotographer"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
                 android:text="Photographer"
-                app:chipIcon="@drawable/ic_photo_camera"
-                app:chipIconTint="@color/colorPrimary" />
+                app:chipBackgroundColor="@drawable/chip_background_selector" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipCaterer"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
                 android:text="Caterer"
-                app:chipIcon="@drawable/ic_restaurant"
-                app:chipIconTint="@color/colorPrimary" />
+                app:chipBackgroundColor="@drawable/chip_background_selector" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipDecorator"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
                 android:text="Decorator"
-                app:chipIcon="@drawable/ic_decoration"
-                app:chipIconTint="@color/colorPrimary" />
+                app:chipBackgroundColor="@drawable/chip_background_selector" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipFlorist"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
                 android:text="Florist"
-                app:chipIcon="@drawable/ic_local_florist"
-                app:chipIconTint="@color/colorPrimary" />
+                app:chipBackgroundColor="@drawable/chip_background_selector" />
 
-        </LinearLayout>
+        </com.google.android.material.chip.ChipGroup>
 
-    </HorizontalScrollView>
+    </com.google.android.material.card.MaterialCardView>
 
-    <!-- Bottom Sheet for Vendor Details -->
-    <include
-        android:id="@+id/bottomSheetVendorDetails"
-        layout="@layout/bottom_sheet_vendor_details"
-        android:layout_width="match_parent"
+    <!-- Vendor Count Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardVendorCount"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:visibility="gone" />
+        android:layout_gravity="top|end"
+        android:layout_marginTop="150dp"
+        android:layout_marginEnd="16dp"
+        android:visibility="gone"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp">
+
+        <TextView
+            android:id="@+id/tvVendorCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/colorPrimary"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:textColor="@color/colorAccent"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            tools:text="25 vendors found" />
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Current Location Button -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/btnCurrentLocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:layout_margin="16dp"
+        android:layout_marginBottom="160dp"
+        android:src="@drawable/ic_my_location"
+        app:backgroundTint="@color/colorAccent"
+        app:tint="@color/colorPrimary" />
+
+    <!-- Map Type Toggle FAB -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabToggleMapType"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:layout_margin="16dp"
+        android:layout_marginBottom="90dp"
+        android:src="@drawable/ic_layers"
+        app:backgroundTint="@color/colorAccent"
+        app:tint="@color/colorPrimary" />
+
+    <!-- Filter FAB -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabFilterVendors"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:layout_marginBottom="160dp"
+        android:src="@drawable/ic_filter"
+        app:backgroundTint="@color/colorPrimary"
+        app:tint="@color/colorAccent" />
 
     <!-- Loading Progress -->
     <ProgressBar
@@ -143,61 +160,186 @@
         android:layout_gravity="center"
         android:visibility="gone" />
 
-    <!-- Map Controls -->
+    <!-- Bottom Sheet for Vendor Details - FIX: Direct LinearLayout instead of include -->
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:id="@+id/bottomSheetVendorDetails"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="end|bottom"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="80dp"
-        android:orientation="vertical">
+        android:background="@drawable/bg_bottom_sheet"
+        android:orientation="vertical"
+        android:padding="20dp"
+        app:behavior_hideable="true"
+        app:behavior_peekHeight="0dp"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
-        <!-- Toggle Map Type -->
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fabToggleMapType"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:src="@drawable/ic_layers"
-            app:backgroundTint="@color/colorAccent"
-            app:fabSize="mini"
-            app:tint="@color/colorPrimary" />
+        <!-- Handle Bar -->
+        <View
+            android:layout_width="40dp"
+            android:layout_height="4dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/bg_bottom_sheet_handle" />
 
-        <!-- Filter Vendors -->
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fabFilterVendors"
-            android:layout_width="wrap_content"
+        <!-- Header Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_filter_list"
-            app:backgroundTint="@color/colorPrimary"
-            app:fabSize="mini"
-            app:tint="@color/colorAccent" />
+            android:layout_marginBottom="16dp"
+            android:orientation="horizontal">
+
+            <!-- Vendor Initial -->
+            <TextView
+                android:id="@+id/tvVendorInitial"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_marginEnd="16dp"
+                android:background="@drawable/bg_spinner"
+                android:gravity="center"
+                android:textColor="@color/colorPrimary"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                tools:text="R" />
+
+            <!-- Vendor Info -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvVendorName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/colorPrimary"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    tools:text="Royal Caterers" />
+
+                <TextView
+                    android:id="@+id/tvVendorCategory"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textColor="@color/colorSecondary"
+                    android:textSize="14sp"
+                    tools:text="Caterer" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <RatingBar
+                        android:id="@+id/ratingBarVendor"
+                        style="?android:attr/ratingBarStyleSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:isIndicator="true"
+                        android:numStars="5"
+                        android:progressTint="@color/colorPrimary"
+                        android:rating="4.5" />
+
+                    <TextView
+                        android:id="@+id/tvVendorRating"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:textColor="@color/colorPrimary"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        tools:text="4.5" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Close Button -->
+            <ImageButton
+                android:id="@+id/btnCloseBottomSheet"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_delete"
+                app:tint="@color/colorSecondary" />
+
+        </LinearLayout>
+
+        <!-- Location and Price -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:layout_marginEnd="4dp"
+                    android:src="@drawable/ic_location"
+                    app:tint="@color/colorSecondary" />
+
+                <TextView
+                    android:id="@+id/tvVendorLocation"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/colorSecondary"
+                    android:textSize="12sp"
+                    tools:text="Mumbai, Maharashtra" />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvVendorPrice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/colorPrimary"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                tools:text="₹50,000" />
+
+        </LinearLayout>
+
+        <!-- Action Buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCallVendor"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:text="Call"
+                app:icon="@drawable/ic_phone"
+                app:strokeColor="@color/colorPrimary" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnViewDetails"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="View Details"
+                app:backgroundTint="@color/colorPrimary"
+                app:icon="@drawable/ic_arrow_back" />
+
+        </LinearLayout>
 
     </LinearLayout>
-
-    <!-- Vendor Count Badge -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cardVendorCount"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="24dp"
-        android:visibility="gone"
-        app:cardBackgroundColor="@color/colorPrimary"
-        app:cardCornerRadius="20dp"
-        app:cardElevation="4dp">
-
-        <TextView
-            android:id="@+id/tvVendorCount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="8dp"
-            android:textColor="@color/colorAccent"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            tools:text="12 vendors found" />
-
-    </com.google.android.material.card.MaterialCardView>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

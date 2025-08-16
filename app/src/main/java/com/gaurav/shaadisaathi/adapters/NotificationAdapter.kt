@@ -3,19 +3,25 @@ package com.gaurav.shaadisaathi.adapters
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
+import com.gaurav.shaadisaathi.R
 import com.gaurav.shaadisaathi.databinding.ItemNotificationBinding
-import com.gaurav.shaadisaathi.models.Notification
+import com.gaurav.shaadisaathi.models.NotificationItem
 import java.text.SimpleDateFormat
 import java.util.*
 
 class NotificationAdapter(
-    private val notifications: List<Notification>,
-    private val onItemClick: (Notification) -> Unit
+    private val notifications: MutableList<NotificationItem>, // FIX: Use NotificationItem
+    private val onNotificationClick: (NotificationItem) -> Unit // FIX: Add missing parameter
 ) : RecyclerView.Adapter<NotificationAdapter.NotificationViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NotificationViewHolder {
-        val binding = ItemNotificationBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = ItemNotificationBinding.inflate(
+            LayoutInflater.from(parent.context),
+            parent,
+            false
+        )
         return NotificationViewHolder(binding)
     }
 
@@ -25,59 +31,73 @@ class NotificationAdapter(
 
     override fun getItemCount(): Int = notifications.size
 
-    inner class NotificationViewHolder(private val binding: ItemNotificationBinding) : RecyclerView.ViewHolder(binding.root) {
+    fun updateNotifications(newNotifications: List<NotificationItem>) {
+        notifications.clear()
+        notifications.addAll(newNotifications)
+        notifyDataSetChanged()
+    }
 
-        fun bind(notification: Notification) {
-            binding.tvNotificationTitle.text = notification.title
-            binding.tvNotificationMessage.text = notification.message
-
-            // Format timestamp
-            val timeAgo = getTimeAgo(notification.timestamp)
-            binding.tvNotificationTime.text = timeAgo
-
-            // Show unread indicator
-            if (!notification.isRead) {
-                binding.unreadIndicator.visibility = View.VISIBLE
-                binding.root.alpha = 1.0f
-            } else {
-                binding.unreadIndicator.visibility = View.GONE
-                binding.root.alpha = 0.7f
-            }
-
-            // Set notification icon based on type
-            when (notification.type) {
-                "chat" -> {
-                    binding.ivNotificationIcon.setImageResource(android.R.drawable.ic_menu_share)
-                }
-                "photo" -> {
-                    binding.ivNotificationIcon.setImageResource(android.R.drawable.ic_menu_gallery)
-                }
-                "event" -> {
-                    binding.ivNotificationIcon.setImageResource(android.R.drawable.ic_menu_today)
-                }
-                "rsvp" -> {
-                    binding.ivNotificationIcon.setImageResource(android.R.drawable.ic_menu_agenda)
-                }
-                else -> {
-                    binding.ivNotificationIcon.setImageResource(android.R.drawable.ic_dialog_info)
-                }
-            }
-
-            binding.root.setOnClickListener {
-                onItemClick(notification)
-            }
+    fun markAsRead(notificationId: String) {
+        val index = notifications.indexOfFirst { it.id == notificationId }
+        if (index != -1) {
+            notifications[index] = notifications[index].copy(isRead = true)
+            notifyItemChanged(index)
         }
+    }
 
-        private fun getTimeAgo(timestamp: Long): String {
-            val now = System.currentTimeMillis()
-            val diff = now - timestamp
+    inner class NotificationViewHolder(private val binding: ItemNotificationBinding) :
+        RecyclerView.ViewHolder(binding.root) {
 
-            return when {
-                diff < 60_000 -> "Just now"
-                diff < 3600_000 -> "${diff / 60_000}m ago"
-                diff < 86400_000 -> "${diff / 3600_000}h ago"
-                diff < 604800_000 -> "${diff / 86400_000}d ago"
-                else -> SimpleDateFormat("MMM dd", Locale.getDefault()).format(Date(timestamp))
+        fun bind(notification: NotificationItem) {
+            binding.apply {
+                tvNotificationTitle.text = notification.title
+                tvNotificationMessage.text = notification.message
+
+                // Format timestamp
+                val dateFormat = SimpleDateFormat("MMM dd, hh:mm a", Locale.getDefault())
+                tvNotificationTime.text = dateFormat.format(Date(notification.timestamp))
+
+                // Set notification icon based on type
+                ivNotificationIcon.setImageResource(
+                    when (notification.type) {
+                        "invitation" -> R.drawable.ic_invitation
+                        "rsvp_update" -> R.drawable.ic_placeholder
+                        "reminder" -> R.drawable.ic_placeholder
+                        "chat" -> R.drawable.ic_chat
+                        else -> R.drawable.ic_notification
+                    }
+                )
+
+                // Show unread indicator
+                viewUnreadIndicator.visibility = if (!notification.isRead) View.VISIBLE else View.GONE
+
+                // Set background based on read status
+                root.setBackgroundColor(
+                    ContextCompat.getColor(
+                        itemView.context,
+                        if (notification.isRead) R.color.colorAccent else R.color.colorPrimaryLight
+                    )
+                )
+
+                // Priority indicator
+                when (notification.priority) {
+                    "high" -> {
+                        root.strokeColor = ContextCompat.getColor(itemView.context, R.color.status_declined)
+                        root.strokeWidth = 4
+                    }
+                    "normal" -> {
+                        root.strokeColor = ContextCompat.getColor(itemView.context, R.color.colorSecondary)
+                        root.strokeWidth = 2
+                    }
+                    else -> {
+                        root.strokeWidth = 0
+                    }
+                }
+
+                // Click listener
+                root.setOnClickListener {
+                    onNotificationClick(notification)
+                }
             }
         }
     }

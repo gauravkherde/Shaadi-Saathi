@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_filter_all"
+        android:title="All Guests"
+        android:orderInCategory="100"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_filter_family"
+        android:title="Family"
+        android:orderInCategory="101"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_filter_friends"
+        android:title="Friends"
+        android:orderInCategory="102"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_filter_colleagues"
+        android:title="Colleagues"
+        android:orderInCategory="103"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_filter_others"
+        android:title="Others"
+        android:orderInCategory="104"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_filter_confirmed"
+        android:title="Confirmed"
+        android:orderInCategory="200"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_filter_pending"
+        android:title="Pending"
+        android:orderInCategory="201"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_filter_declined"
+        android:title="Declined"
+        android:orderInCategory="202"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_sort_name"
+        android:title="Sort by Name"
+        android:orderInCategory="300"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_sort_date"
+        android:title="Sort by Date Added"
+        android:orderInCategory="301"
+        app:showAsAction="never" />
+
+</menu>

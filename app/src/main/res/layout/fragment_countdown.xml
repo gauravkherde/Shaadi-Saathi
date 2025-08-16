@@ -153,19 +153,10 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="8dp"
                             android:text="Days"
                             android:textColor="@color/colorSecondary"
                             android:textSize="14sp"
                             android:textStyle="bold" />
-
-                        <ProgressBar
-                            android:id="@+id/progressDays"
-                            style="?android:attr/progressBarStyleHorizontal"
-                            android:layout_width="match_parent"
-                            android:layout_height="4dp"
-                            android:progressTint="@color/colorPrimary"
-                            tools:progress="75" />
 
                     </LinearLayout>
 
@@ -200,19 +191,10 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="8dp"
                             android:text="Hours"
                             android:textColor="@color/colorSecondary"
                             android:textSize="14sp"
                             android:textStyle="bold" />
-
-                        <ProgressBar
-                            android:id="@+id/progressHours"
-                            style="?android:attr/progressBarStyleHorizontal"
-                            android:layout_width="match_parent"
-                            android:layout_height="4dp"
-                            android:progressTint="@color/colorAccent"
-                            tools:progress="50" />
 
                     </LinearLayout>
 
@@ -247,19 +229,10 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="8dp"
                             android:text="Minutes"
                             android:textColor="@color/colorSecondary"
                             android:textSize="14sp"
                             android:textStyle="bold" />
-
-                        <ProgressBar
-                            android:id="@+id/progressMinutes"
-                            style="?android:attr/progressBarStyleHorizontal"
-                            android:layout_width="match_parent"
-                            android:layout_height="4dp"
-                            android:progressTint="@color/category_family"
-                            tools:progress="25" />
 
                     </LinearLayout>
 

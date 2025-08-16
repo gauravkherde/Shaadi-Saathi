@@ -9,6 +9,9 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.gaurav.shaadisaathi.databinding.ActivityEventDetailBinding
 import com.gaurav.shaadisaathi.models.Event
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class EventDetailActivity : AppCompatActivity() {
 
@@ -63,10 +66,19 @@ class EventDetailActivity : AppCompatActivity() {
 
     private fun displayEventDetails(event: Event) {
         binding.tvEventName.text = event.name
-        binding.tvEventType.text = event.type.capitalize()
-        binding.tvEventDateTime.text = "${event.date} at ${event.time}"
-        binding.tvEventVenue.text = event.venue
-        binding.tvEventAddress.text = event.address
+        binding.tvEventType.text = event.getEventTypeDisplayName() // Use helper method
+
+        // FIX: Format date and time properly
+        val dateFormat = SimpleDateFormat("EEEE, MMM dd, yyyy", Locale.getDefault())
+        val formattedDate = dateFormat.format(Date(event.date))
+        binding.tvEventDateTime.text = "$formattedDate at ${event.startTime}"
+
+        // FIX: Access venue name from EventVenue object
+        binding.tvEventVenue.text = event.venue.name
+
+        // FIX: Access address from EventVenue object
+        binding.tvEventAddress.text = event.venue.getFullAddress()
+
         binding.tvEventDescription.text = event.description
     }
 

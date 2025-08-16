@@ -1,139 +1,108 @@
 package com.gaurav.shaadisaathi.repository
 
-import android.util.Log
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import com.gaurav.shaadisaathi.models.Vendor
-import kotlinx.coroutines.tasks.await
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 
 class VendorRepository {
 
-    private val firestore = FirebaseFirestore.getInstance()
-    private val auth = FirebaseAuth.getInstance()
-    private val TAG = "VendorRepository"
+    private val database = FirebaseDatabase.getInstance()
+    private val vendorsRef = database.getReference("vendors")
 
-    suspend fun addVendor(vendor: Vendor): Result<String> {
-        return try {
-            firestore.collection("vendors").document(vendor.id).set(vendor).await()
-            Log.d(TAG, "Vendor added successfully: ${vendor.id}")
-            Result.success(vendor.id)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error adding vendor", e)
-            Result.failure(e)
-        }
-    }
+    suspend fun getVendorById(vendorId: String): Result<Vendor?> {
+        return suspendCancellableCoroutine { continuation ->
+            vendorsRef.child(vendorId).addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    try {
+                        val vendor = snapshot.getValue(Vendor::class.java)
+                        continuation.resume(Result.success(vendor))
+                    } catch (e: Exception) {
+                        continuation.resume(Result.failure(e))
+                    }
+                }
 
-    suspend fun updateVendor(vendor: Vendor): Result<Unit> {
-        return try {
-            firestore.collection("vendors").document(vendor.id).set(vendor).await()
-            Log.d(TAG, "Vendor updated successfully: ${vendor.id}")
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error updating vendor", e)
-            Result.failure(e)
-        }
-    }
-
-    suspend fun deleteVendor(vendorId: String): Result<Unit> {
-        return try {
-            firestore.collection("vendors").document(vendorId).delete().await()
-            Log.d(TAG, "Vendor deleted successfully: $vendorId")
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error deleting vendor", e)
-            Result.failure(e)
-        }
-    }
-
-    suspend fun getVendor(vendorId: String): Result<Vendor?> {
-        return try {
-            val document = firestore.collection("vendors").document(vendorId).get().await()
-            val vendor = document.toObject(Vendor::class.java)
-            Log.d(TAG, "Vendor retrieved: $vendorId")
-            Result.success(vendor)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error getting vendor", e)
-            Result.failure(e)
+                override fun onCancelled(error: DatabaseError) {
+                    continuation.resume(Result.failure(Exception(error.message)))
+                }
+            })
         }
     }
 
     suspend fun getAllVendors(): Result<List<Vendor>> {
+        return suspendCancellableCoroutine { continuation ->
+            vendorsRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    try {
+                        val vendors = mutableListOf<Vendor>()
+                        for (childSnapshot in snapshot.children) {
+                            val vendor = childSnapshot.getValue(Vendor::class.java)
+                            vendor?.let { vendors.add(it) }
+                        }
+                        continuation.resume(Result.success(vendors))
+                    } catch (e: Exception) {
+                        continuation.resume(Result.failure(e))
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    continuation.resume(Result.failure(Exception(error.message)))
+                }
+            })
+        }
+    }
+
+    suspend fun addVendor(vendor: Vendor): Result<String> {
         return try {
-            val currentUser = auth.currentUser ?: return Result.failure(Exception("User not authenticated"))
-
-            val documents = firestore.collection("vendors")
-                .whereEqualTo("hostId", currentUser.uid)
-                .orderBy("name", Query.Direction.ASCENDING)
-                .get()
-                .await()
-
-            val vendors = documents.mapNotNull { it.toObject(Vendor::class.java) }
-            Log.d(TAG, "Retrieved ${vendors.size} vendors")
-            Result.success(vendors)
+            vendorsRef.child(vendor.id).setValue(vendor)
+            Result.success(vendor.id)
         } catch (e: Exception) {
-            Log.e(TAG, "Error getting all vendors", e)
+            Result.failure(e)
+        }
+    }
+
+    suspend fun updateVendor(vendor: Vendor): Result<Boolean> {
+        return try {
+            vendorsRef.child(vendor.id).setValue(vendor)
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deleteVendor(vendorId: String): Result<Boolean> {
+        return try {
+            vendorsRef.child(vendorId).removeValue()
+            Result.success(true)
+        } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
     suspend fun getVendorsByCategory(category: String): Result<List<Vendor>> {
-        return try {
-            val currentUser = auth.currentUser ?: return Result.failure(Exception("User not authenticated"))
+        return suspendCancellableCoroutine { continuation ->
+            vendorsRef.orderByChild("category").equalTo(category)
+                .addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        try {
+                            val vendors = mutableListOf<Vendor>()
+                            for (childSnapshot in snapshot.children) {
+                                val vendor = childSnapshot.getValue(Vendor::class.java)
+                                vendor?.let { vendors.add(it) }
+                            }
+                            continuation.resume(Result.success(vendors))
+                        } catch (e: Exception) {
+                            continuation.resume(Result.failure(e))
+                        }
+                    }
 
-            val documents = firestore.collection("vendors")
-                .whereEqualTo("hostId", currentUser.uid)
-                .whereEqualTo("category", category)
-                .orderBy("rating", Query.Direction.DESCENDING)
-                .get()
-                .await()
-
-            val vendors = documents.mapNotNull { it.toObject(Vendor::class.java) }
-            Log.d(TAG, "Retrieved ${vendors.size} vendors for category: $category")
-            Result.success(vendors)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error getting vendors by category", e)
-            Result.failure(e)
-        }
-    }
-
-    suspend fun getFavoriteVendors(): Result<List<Vendor>> {
-        return try {
-            val currentUser = auth.currentUser ?: return Result.failure(Exception("User not authenticated"))
-
-            val documents = firestore.collection("vendors")
-                .whereEqualTo("hostId", currentUser.uid)
-                .whereEqualTo("isFavorite", true)
-                .orderBy("name", Query.Direction.ASCENDING)
-                .get()
-                .await()
-
-            val vendors = documents.mapNotNull { it.toObject(Vendor::class.java) }
-            Log.d(TAG, "Retrieved ${vendors.size} favorite vendors")
-            Result.success(vendors)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error getting favorite vendors", e)
-            Result.failure(e)
-        }
-    }
-
-    suspend fun getBookedVendors(): Result<List<Vendor>> {
-        return try {
-            val currentUser = auth.currentUser ?: return Result.failure(Exception("User not authenticated"))
-
-            val documents = firestore.collection("vendors")
-                .whereEqualTo("hostId", currentUser.uid)
-                .whereEqualTo("isBooked", true)
-                .orderBy("name", Query.Direction.ASCENDING)
-                .get()
-                .await()
-
-            val vendors = documents.mapNotNull { it.toObject(Vendor::class.java) }
-            Log.d(TAG, "Retrieved ${vendors.size} booked vendors")
-            Result.success(vendors)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error getting booked vendors", e)
-            Result.failure(e)
+                    override fun onCancelled(error: DatabaseError) {
+                        continuation.resume(Result.failure(Exception(error.message)))
+                    }
+                })
         }
     }
 }

@@ -152,42 +152,42 @@
                             android:layout_height="wrap_content"
                             android:checked="true"
                             android:text="All"
-                            app:chipBackgroundColor="@color/chip_background_selector" />
+                            app:chipBackgroundColor="@drawable/chip_background_selector" />
 
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chipPhotographer"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Photographer"
-                            app:chipBackgroundColor="@color/chip_background_selector" />
+                            app:chipBackgroundColor="@drawable/chip_background_selector" />
 
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chipCaterer"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Caterer"
-                            app:chipBackgroundColor="@color/chip_background_selector" />
+                            app:chipBackgroundColor="@drawable/chip_background_selector" />
 
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chipDecorator"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Decorator"
-                            app:chipBackgroundColor="@color/chip_background_selector" />
+                            app:chipBackgroundColor="@drawable/chip_background_selector" />
 
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chipDj"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="DJ"
-                            app:chipBackgroundColor="@color/chip_background_selector" />
+                            app:chipBackgroundColor="@drawable/chip_background_selector" />
 
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chipMakeup"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Makeup"
-                            app:chipBackgroundColor="@color/chip_background_selector" />
+                            app:chipBackgroundColor="@drawable/chip_background_selector" />
 
                     </com.google.android.material.chip.ChipGroup>
 
@@ -212,7 +212,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Favorites Only"
-                            app:chipBackgroundColor="@color/chip_background_selector" />
+                            app:chipBackgroundColor="@drawable/chip_background_selector" />
 
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chipBooked"
@@ -220,7 +220,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Booked Only"
-                            app:chipBackgroundColor="@color/chip_background_selector" />
+                            app:chipBackgroundColor="@drawable/chip_background_selector" />
 
                     </com.google.android.material.chip.ChipGroup>
 

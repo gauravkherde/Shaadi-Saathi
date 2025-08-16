@@ -10,7 +10,7 @@
 
     <item
         android:id="@+id/action_timeline_view"
-        android:icon="@drawable/ic_timeline"
+        android:icon="@drawable/ic_placeholder"
         android:title="Timeline View"
         app:showAsAction="never" />
 

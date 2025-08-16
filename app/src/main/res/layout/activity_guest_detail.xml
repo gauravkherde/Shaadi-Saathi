@@ -508,7 +508,7 @@
                             android:layout_width="20dp"
                             android:layout_height="20dp"
                             android:layout_marginEnd="12dp"
-                            android:src="@drawable/ic_person_add"
+                            android:src="@drawable/ic_add"
                             app:tint="@color/colorSecondary" />
 
                         <TextView
@@ -541,7 +541,7 @@
                             android:layout_width="20dp"
                             android:layout_height="20dp"
                             android:layout_marginEnd="12dp"
-                            android:src="@drawable/ic_check_circle"
+                            android:src="@drawable/ic_checklist"
                             app:tint="@color/colorSecondary" />
 
                         <TextView
@@ -605,7 +605,7 @@
                             android:layout_width="20dp"
                             android:layout_height="20dp"
                             android:layout_marginEnd="12dp"
-                            android:src="@drawable/ic_table"
+                            android:src="@drawable/ic_vendor_placeholder"
                             app:tint="@color/colorSecondary" />
 
                         <TextView
@@ -686,7 +686,7 @@
                             android:layout_height="20dp"
                             android:layout_marginEnd="12dp"
                             android:layout_marginTop="2dp"
-                            android:src="@drawable/ic_notes"
+                            android:src="@drawable/ic_vendor_placeholder"
                             app:tint="@color/colorSecondary" />
 
                         <LinearLayout
@@ -761,7 +761,7 @@
                     android:layout_weight="1"
                     android:text="Update RSVP"
                     android:textSize="12sp"
-                    app:icon="@drawable/ic_rsvp"
+                    app:icon="@drawable/ic_rsvp_pending"
                     app:iconSize="16dp" />
 
             </LinearLayout>
@@ -794,7 +794,7 @@
                     android:layout_weight="1"
                     android:text="Set Reminder"
                     android:textSize="12sp"
-                    app:icon="@drawable/ic_reminder"
+                    app:icon="@drawable/ic_vendor_placeholder"
                     app:iconSize="16dp" />
 
             </LinearLayout>

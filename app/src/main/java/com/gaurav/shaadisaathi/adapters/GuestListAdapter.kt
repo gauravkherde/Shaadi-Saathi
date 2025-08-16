@@ -1,6 +1,5 @@
 package com.gaurav.shaadisaathi.adapters
 
-import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,23 +10,15 @@ import com.gaurav.shaadisaathi.databinding.ItemGuestListBinding
 import com.gaurav.shaadisaathi.models.Guest
 
 class GuestListAdapter(
-    private var guests: List<Guest>,
-    private val onItemClick: (Guest) -> Unit,
-    private val onEditClick: (Guest) -> Unit,
-    private val onDeleteClick: (Guest) -> Unit,
-    private val onRSVPClick: (Guest) -> Unit
+    private val guests: MutableList<Guest>,
+    private val onGuestClick: (Guest) -> Unit,
+    private val onCallClick: (Guest) -> Unit,
+    private val onEmailClick: (Guest) -> Unit
 ) : RecyclerView.Adapter<GuestListAdapter.GuestViewHolder>() {
-
-    fun updateGuests(newGuests: List<Guest>) {
-        guests = newGuests
-        notifyDataSetChanged()
-    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GuestViewHolder {
         val binding = ItemGuestListBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false
+            LayoutInflater.from(parent.context), parent, false
         )
         return GuestViewHolder(binding)
     }
@@ -38,120 +29,66 @@ class GuestListAdapter(
 
     override fun getItemCount(): Int = guests.size
 
+    fun updateGuests(newGuests: List<Guest>) {
+        guests.clear()
+        guests.addAll(newGuests)
+        notifyDataSetChanged()
+    }
+
     inner class GuestViewHolder(private val binding: ItemGuestListBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(guest: Guest) {
             binding.apply {
-                // Basic info
-                tvGuestName.text = guest.getDisplayName()
-                tvGuestPhone.text = if (guest.phone.isNotEmpty()) guest.phone else "No phone"
-                tvGuestEmail.text = if (guest.email.isNotEmpty()) guest.email else "No email"
+                tvGuestName.text = guest.name
                 tvGuestCategory.text = guest.getCategoryDisplayName()
 
-                // RSVP Status
-                updateRSVPStatus(guest)
+                // Contact info
+                tvGuestPhone.text = if (guest.phone.isNotEmpty()) guest.phone else "No phone"
+                tvGuestEmail.text = if (guest.email.isNotEmpty()) guest.email else "No email"
 
-                // Plus one indicator
-                if (guest.hasPlusOne) {
-                    tvPlusOne.visibility = View.VISIBLE
-                    tvPlusOne.text = if (guest.plusOneConfirmed) {
-                        "+1 (${guest.plusOneName.ifEmpty { "Guest" }})"
-                    } else {
-                        "+1 (Pending)"
+                // Set guest initial
+                val initial = guest.name.firstOrNull()?.toString()?.uppercase() ?: "G"
+                tvGuestInitial.text = initial
+
+                // RSVP Status chip
+                chipRsvpStatus.apply {
+                    text = guest.rsvpStatus.replaceFirstChar {
+                        if (it.isLowerCase()) it.titlecase() else it.toString()
                     }
-                } else {
-                    tvPlusOne.visibility = View.GONE
+                    setChipBackgroundColorResource(
+                        when (guest.rsvpStatus) {
+                            "confirmed" -> R.color.status_confirmed
+                            "declined" -> R.color.status_declined
+                            else -> R.color.status_pending
+                        }
+                    )
                 }
-
-                // Meal preference
-                ivMealPreference.setImageResource(
-                    when (guest.mealPreference) {
-                        "veg" -> R.drawable.ic_meal_veg
-                        "non-veg" -> R.drawable.ic_meal_nonveg
-                        "jain" -> R.drawable.ic_meal_veg
-                        "vegan" -> R.drawable.ic_meal_veg
-                        else -> R.drawable.ic_meal_veg
-                    }
-                )
-
-                // VIP indicator
-                ivVipIndicator.visibility = if (guest.isVip) View.VISIBLE else View.GONE
-
-                // Invitation status
-                updateInvitationStatus(guest)
-
-                // Special requirements indicator
-                ivSpecialRequirements.visibility =
-                    if (guest.specialRequirements.isNotEmpty()) View.VISIBLE else View.GONE
 
                 // Click listeners
-                root.setOnClickListener { onItemClick(guest) }
-                btnEdit.setOnClickListener { onEditClick(guest) }
-                btnDelete.setOnClickListener { onDeleteClick(guest) }
-                chipRsvpStatus.setOnClickListener { onRSVPClick(guest) }
+                root.setOnClickListener { onGuestClick(guest) }
 
-                // Long click for context menu
-                root.setOnLongClickListener {
-                    showContextMenu(guest)
-                    true
+                // Enable/disable action buttons based on available contact info
+                val hasPhone = guest.phone.isNotEmpty()
+                val hasEmail = guest.email.isNotEmpty()
+
+                if (hasPhone) {
+                    root.setOnLongClickListener {
+                        onCallClick(guest)
+                        true
+                    }
                 }
-            }
-        }
 
-        private fun updateRSVPStatus(guest: Guest) {
-            binding.apply {
-                when (guest.rsvpStatus) {
-                    "confirmed" -> {
-                        chipRsvpStatus.text = "Confirmed"
-                        chipRsvpStatus.setChipBackgroundColorResource(R.color.status_confirmed)
-                        chipRsvpStatus.setTextColor(Color.WHITE)
-                        ivRsvpIcon.setImageResource(R.drawable.ic_rsvp_confirmed)
-                        ivRsvpIcon.setColorFilter(ContextCompat.getColor(itemView.context, R.color.status_confirmed))
-                    }
-                    "declined" -> {
-                        chipRsvpStatus.text = "Declined"
-                        chipRsvpStatus.setChipBackgroundColorResource(R.color.status_declined)
-                        chipRsvpStatus.setTextColor(Color.WHITE)
-                        ivRsvpIcon.setImageResource(R.drawable.ic_rsvp_declined)
-                        ivRsvpIcon.setColorFilter(ContextCompat.getColor(itemView.context, R.color.status_declined))
-                    }
-                    else -> {
-                        chipRsvpStatus.text = "Pending"
-                        chipRsvpStatus.setChipBackgroundColorResource(R.color.status_pending)
-                        chipRsvpStatus.setTextColor(Color.BLACK)
-                        ivRsvpIcon.setImageResource(R.drawable.ic_rsvp_pending)
-                        ivRsvpIcon.setColorFilter(ContextCompat.getColor(itemView.context, R.color.status_pending))
+                if (hasEmail) {
+                    root.setOnClickListener {
+                        if (it.context.packageManager.hasSystemFeature("android.hardware.touchscreen")) {
+                            onEmailClick(guest)
+                        } else {
+                            onGuestClick(guest)
+                        }
                     }
                 }
             }
-        }
-
-        private fun updateInvitationStatus(guest: Guest) {
-            binding.apply {
-                if (guest.invitationSent) {
-                    tvInvitationStatus.text = "Invitation Sent"
-                    tvInvitationStatus.setTextColor(
-                        ContextCompat.getColor(itemView.context, R.color.status_confirmed)
-                    )
-                    ivInvitationIcon.setImageResource(R.drawable.ic_email_sent)
-                } else {
-                    tvInvitationStatus.text = "Not Sent"
-                    tvInvitationStatus.setTextColor(
-                        ContextCompat.getColor(itemView.context, R.color.status_pending)
-                    )
-                    ivInvitationIcon.setImageResource(R.drawable.ic_email_pending)
-                }
-            }
-        }
-
-        private fun showContextMenu(guest: Guest) {
-            // TODO: Implement context menu with quick actions
-            // - Call guest
-            // - Send message
-            // - Send invitation
-            // - Mark as VIP
-            // - Add to chat room
         }
     }
 }

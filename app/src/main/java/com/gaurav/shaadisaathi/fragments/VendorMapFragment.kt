@@ -9,6 +9,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
+import android.widget.RatingBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -20,11 +23,13 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.button.MaterialButton
 import com.gaurav.shaadisaathi.R
 import com.gaurav.shaadisaathi.activities.VendorDetailActivity
 import com.gaurav.shaadisaathi.databinding.FragmentVendorMapBinding
@@ -46,6 +51,19 @@ class VendorMapFragment : Fragment(), OnMapReadyCallback {
     private var selectedVendor: Vendor? = null
     private var currentMapType = GoogleMap.MAP_TYPE_NORMAL
     private val TAG = "VendorMapFragment"
+
+    // Bottom sheet views
+    private lateinit var bottomSheetView: View
+    private lateinit var tvVendorInitial: TextView
+    private lateinit var tvVendorName: TextView
+    private lateinit var tvVendorCategory: TextView
+    private lateinit var ratingBarVendor: RatingBar
+    private lateinit var tvVendorRating: TextView
+    private lateinit var tvVendorLocation: TextView
+    private lateinit var tvVendorPrice: TextView
+    private lateinit var btnCloseBottomSheet: ImageButton
+    private lateinit var btnCallVendor: MaterialButton
+    private lateinit var btnViewDetails: MaterialButton
 
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1001
@@ -80,8 +98,13 @@ class VendorMapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun setupBottomSheet() {
-        bottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheetVendorDetails)
+        // FIX: Get the bottom sheet view and initialize all components
+        bottomSheetView = binding.bottomSheetVendorDetails
+        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheetView)
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+
+        // Initialize bottom sheet views
+        initializeBottomSheetViews()
 
         bottomSheetBehavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
             override fun onStateChanged(bottomSheet: View, newState: Int) {
@@ -94,6 +117,20 @@ class VendorMapFragment : Fragment(), OnMapReadyCallback {
                 // Handle slide animation if needed
             }
         })
+    }
+
+    private fun initializeBottomSheetViews() {
+        // FIX: Initialize all bottom sheet views using findViewById
+        tvVendorInitial = bottomSheetView.findViewById(R.id.tvVendorInitial)
+        tvVendorName = bottomSheetView.findViewById(R.id.tvVendorName)
+        tvVendorCategory = bottomSheetView.findViewById(R.id.tvVendorCategory)
+        ratingBarVendor = bottomSheetView.findViewById(R.id.ratingBarVendor)
+        tvVendorRating = bottomSheetView.findViewById(R.id.tvVendorRating)
+        tvVendorLocation = bottomSheetView.findViewById(R.id.tvVendorLocation)
+        tvVendorPrice = bottomSheetView.findViewById(R.id.tvVendorPrice)
+        btnCloseBottomSheet = bottomSheetView.findViewById(R.id.btnCloseBottomSheet)
+        btnCallVendor = bottomSheetView.findViewById(R.id.btnCallVendor)
+        btnViewDetails = bottomSheetView.findViewById(R.id.btnViewDetails)
     }
 
     private fun setupClickListeners() {
@@ -114,16 +151,16 @@ class VendorMapFragment : Fragment(), OnMapReadyCallback {
             true
         }
 
-        // Bottom sheet click listeners
-        binding.bottomSheetVendorDetails.findViewById<View>(R.id.btnCloseBottomSheet)?.setOnClickListener {
+        // FIX: Bottom sheet click listeners using initialized views
+        btnCloseBottomSheet.setOnClickListener {
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
         }
 
-        binding.bottomSheetVendorDetails.findViewById<View>(R.id.btnCallVendor)?.setOnClickListener {
+        btnCallVendor.setOnClickListener {
             selectedVendor?.let { callVendor(it) }
         }
 
-        binding.bottomSheetVendorDetails.findViewById<View>(R.id.btnViewDetails)?.setOnClickListener {
+        btnViewDetails.setOnClickListener {
             selectedVendor?.let { openVendorDetail(it) }
         }
     }
@@ -250,8 +287,12 @@ class VendorMapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun getVendorLocation(vendor: Vendor): LatLng? {
+        // Check if vendor has actual coordinates
+        if (vendor.location.latitude != 0.0 && vendor.location.longitude != 0.0) {
+            return LatLng(vendor.location.latitude, vendor.location.longitude)
+        }
+
         // For demo purposes, generate random locations around major Indian cities
-        // In production, you'd use vendor's actual coordinates or geocode their address
         val cities = listOf(
             LatLng(28.6139, 77.2090), // Delhi
             LatLng(19.0760, 72.8777), // Mumbai
@@ -272,14 +313,14 @@ class VendorMapFragment : Fragment(), OnMapReadyCallback {
         )
     }
 
-    private fun getMarkerIcon(category: String): BitmapDescriptorFactory {
-        return when (category) {
+    private fun getMarkerIcon(category: String): BitmapDescriptor {
+        return when (category.lowercase()) {
             "photographer" -> BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)
             "caterer" -> BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)
             "decorator" -> BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA)
             "florist" -> BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)
-            "dj" -> BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN)
-            "makeup" -> BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)
+            "dj", "music" -> BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN)
+            "makeup artist" -> BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)
             else -> BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)
         }
     }
@@ -287,12 +328,23 @@ class VendorMapFragment : Fragment(), OnMapReadyCallback {
     private fun showVendorBottomSheet(vendor: Vendor) {
         selectedVendor = vendor
 
-        // Populate bottom sheet with vendor data
+        // FIX: Populate bottom sheet with vendor data using initialized views
         val vendorInitial = vendor.getDisplayName().firstOrNull()?.toString()?.uppercase() ?: "V"
-        binding.bottomSheetVendorDetails.findViewById<android.widget.TextView>(R.id.tvVendorInitial)?.text = vendorInitial
-        binding.bottomSheetVendorDetails.findViewById<android.widget.TextView>(R.id.tvVendorName)?.text = vendor.getDisplayName()
-        binding.bottomSheetVendorDetails.findViewById<android.widget.TextView>(R.id.tvVendorCategory)?.text = vendor.getCategoryDisplayName()
-        binding.bottomSheetVendorDetails.findViewById<android.widget.RatingBar>(R.id.ratingBarVendor)?.rating = vendor.rating.toFloat()
+        tvVendorInitial.text = vendorInitial
+        tvVendorName.text = vendor.getDisplayName()
+        tvVendorCategory.text = vendor.getCategoryDisplayName()
+        ratingBarVendor.rating = vendor.rating.toFloat()
+        tvVendorRating.text = String.format("%.1f", vendor.rating)
+        tvVendorLocation.text = vendor.location.getFullAddress()
+
+        // Set pricing info
+        if (vendor.pricing.basePrice > 0) {
+            tvVendorPrice.visibility = View.VISIBLE
+            val currency = java.text.NumberFormat.getCurrencyInstance(java.util.Locale("en", "IN"))
+            tvVendorPrice.text = currency.format(vendor.pricing.basePrice)
+        } else {
+            tvVendorPrice.visibility = View.GONE
+        }
 
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
     }
@@ -301,7 +353,7 @@ class VendorMapFragment : Fragment(), OnMapReadyCallback {
         val filteredVendors = if (category == "all") {
             vendorList
         } else {
-            vendorList.filter { it.category == category }
+            vendorList.filter { it.category.lowercase() == category.lowercase() }
         }
 
         displayVendorsOnMap(filteredVendors)
@@ -352,16 +404,24 @@ class VendorMapFragment : Fragment(), OnMapReadyCallback {
             else -> GoogleMap.MAP_TYPE_NORMAL
         }
         mMap.mapType = currentMapType
+
+        val mapTypeText = when (currentMapType) {
+            GoogleMap.MAP_TYPE_SATELLITE -> "Satellite"
+            GoogleMap.MAP_TYPE_TERRAIN -> "Terrain"
+            GoogleMap.MAP_TYPE_HYBRID -> "Hybrid"
+            else -> "Normal"
+        }
+        Toast.makeText(requireContext(), "Map type: $mapTypeText", Toast.LENGTH_SHORT).show()
     }
 
     private fun showFilterDialog() {
         val filterOptions = arrayOf(
             "All Vendors",
-            "Verified Only",
             "Available Only",
             "Favorites Only",
             "Nearby (5km)",
-            "Nearby (10km)"
+            "Nearby (10km)",
+            "High Rated (4.0+)"
         )
 
         androidx.appcompat.app.AlertDialog.Builder(requireContext())
@@ -369,32 +429,35 @@ class VendorMapFragment : Fragment(), OnMapReadyCallback {
             .setItems(filterOptions) { _, which ->
                 when (which) {
                     0 -> displayVendorsOnMap(vendorList)
-                    1 -> filterByVerified()
-                    2 -> filterByAvailable()
-                    3 -> filterByFavorites()
-                    4 -> filterByDistance(5.0)
-                    5 -> filterByDistance(10.0)
+                    1 -> filterByAvailable()
+                    2 -> filterByFavorites()
+                    3 -> filterByDistance(5.0)
+                    4 -> filterByDistance(10.0)
+                    5 -> filterByRating(4.0)
                 }
             }
             .show()
-    }
-
-    private fun filterByVerified() {
-        val filteredVendors = vendorList.filter { it.isVerified }
-        displayVendorsOnMap(filteredVendors)
-        updateVendorCount(filteredVendors.size)
     }
 
     private fun filterByAvailable() {
         val filteredVendors = vendorList.filter { !it.isBooked }
         displayVendorsOnMap(filteredVendors)
         updateVendorCount(filteredVendors.size)
+        Toast.makeText(requireContext(), "Showing available vendors", Toast.LENGTH_SHORT).show()
     }
 
     private fun filterByFavorites() {
         val filteredVendors = vendorList.filter { it.isFavorite }
         displayVendorsOnMap(filteredVendors)
         updateVendorCount(filteredVendors.size)
+        Toast.makeText(requireContext(), "Showing favorite vendors", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun filterByRating(minRating: Double) {
+        val filteredVendors = vendorList.filter { it.rating >= minRating }
+        displayVendorsOnMap(filteredVendors)
+        updateVendorCount(filteredVendors.size)
+        Toast.makeText(requireContext(), "Showing vendors with ${minRating}+ rating", Toast.LENGTH_SHORT).show()
     }
 
     private fun filterByDistance(maxDistanceKm: Double) {
@@ -410,7 +473,8 @@ class VendorMapFragment : Fragment(), OnMapReadyCallback {
             binding.cardVendorCount.visibility = View.VISIBLE
             binding.tvVendorCount.text = "$count vendor${if (count > 1) "s" else ""} found"
         } else {
-            binding.cardVendorCount.visibility = View.GONE
+            binding.cardVendorCount.visibility = View.VISIBLE
+            binding.tvVendorCount.text = "No vendors found"
         }
     }
 

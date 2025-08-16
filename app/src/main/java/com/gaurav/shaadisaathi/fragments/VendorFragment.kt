@@ -13,27 +13,27 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.gaurav.shaadisaathi.activities.AddVendorActivity
 import com.gaurav.shaadisaathi.activities.VendorDetailActivity
 import com.gaurav.shaadisaathi.adapters.VendorListAdapter
-import com.gaurav.shaadisaathi.databinding.FragmentVendorsBinding
+import com.gaurav.shaadisaathi.databinding.FragmentVendorBinding
 import com.gaurav.shaadisaathi.models.Vendor
 import com.gaurav.shaadisaathi.repository.VendorRepository
 import kotlinx.coroutines.launch
 
-class VendorsFragment : Fragment() {
+class VendorFragment : Fragment() {
 
-    private var _binding: FragmentVendorsBinding? = null
+    private var _binding: FragmentVendorBinding? = null
     private val binding get() = _binding!!
 
     private val vendorRepository = VendorRepository()
     private lateinit var vendorAdapter: VendorListAdapter
     private val vendorList = mutableListOf<Vendor>()
-    private val TAG = "VendorsFragment"
+    private val TAG = "VendorFragment"
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentVendorsBinding.inflate(inflater, container, false)
+        _binding = FragmentVendorBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -209,6 +209,6 @@ class VendorsFragment : Fragment() {
     }
 
     companion object {
-        fun newInstance() = VendorsFragment()
+        fun newInstance() = VendorFragment()
     }
 }

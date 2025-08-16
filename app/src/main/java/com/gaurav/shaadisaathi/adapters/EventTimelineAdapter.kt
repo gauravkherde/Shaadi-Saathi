@@ -1,6 +1,7 @@
 package com.gaurav.shaadisaathi.adapters
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
@@ -11,7 +12,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class EventTimelineAdapter(
-    private val events: List<Event>,
+    private val events: MutableList<Event>,
     private val onEventClick: (Event) -> Unit,
     private val onEditClick: (Event) -> Unit,
     private val onDeleteClick: (Event) -> Unit
@@ -31,6 +32,12 @@ class EventTimelineAdapter(
     }
 
     override fun getItemCount(): Int = events.size
+
+    fun updateEvents(newEvents: List<Event>) {
+        events.clear()
+        events.addAll(newEvents)
+        notifyDataSetChanged()
+    }
 
     inner class EventViewHolder(private val binding: ItemEventTimelineBinding) :
         RecyclerView.ViewHolder(binding.root) {

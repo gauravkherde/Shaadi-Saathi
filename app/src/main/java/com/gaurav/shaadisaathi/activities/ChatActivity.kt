@@ -1,430 +1,209 @@
 package com.gaurav.shaadisaathi.activities
 
-import android.Manifest
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
-import android.util.Log
-import android.view.View
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.ChildEventListener
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
 import com.gaurav.shaadisaathi.adapters.ChatMessageAdapter
 import com.gaurav.shaadisaathi.databinding.ActivityChatBinding
 import com.gaurav.shaadisaathi.models.ChatMessage
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.*
+import com.gaurav.shaadisaathi.repository.ChatRepository
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.launch
 
 class ChatActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityChatBinding
-    private lateinit var auth: FirebaseAuth
-    private val database = FirebaseDatabase.getInstance()
-    private val firestore = FirebaseFirestore.getInstance()
-    private val storage = FirebaseStorage.getInstance()
-    private lateinit var messageAdapter: ChatMessageAdapter
+    private lateinit var chatAdapter: ChatMessageAdapter
     private val messageList = mutableListOf<ChatMessage>()
-    private var chatRoomId = ""
-    private var chatRoomName = ""
-    private var currentUserName = ""
-    private val TAG = "ChatActivity"
+    private val chatRepository = ChatRepository()
+    private val auth = FirebaseAuth.getInstance()
 
-    // Permission constants
-    companion object {
-        private const val CAMERA_PERMISSION_CODE = 100
-        private const val STORAGE_PERMISSION_CODE = 101
-        private val REQUIRED_PERMISSIONS = arrayOf(
-            Manifest.permission.CAMERA,
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-        )
-    }
-
-    // Activity result launchers
-    private val cameraLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-        if (success) {
-            currentPhotoUri?.let { uri ->
-                uploadImageMessage(uri)
-            }
-        }
-    }
-
-    private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri?.let { uploadImageMessage(it) }
-    }
-
-    private var currentPhotoUri: Uri? = null
+    private var chatRoomId: String = ""
+    private var guestName: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityChatBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        auth = FirebaseAuth.getInstance()
-
+        // Get data from intent
         chatRoomId = intent.getStringExtra("chatRoomId") ?: ""
-        chatRoomName = intent.getStringExtra("chatRoomName") ?: "Chat"
+        guestName = intent.getStringExtra("guestName") ?: "Guest"
 
-        binding.tvChatTitle.text = chatRoomName
-
-        getCurrentUserName()
+        setupToolbar()
         setupRecyclerView()
-        loadMessages()
         setupClickListeners()
-
-        Log.d(TAG, "ChatActivity created for room: $chatRoomName")
+        loadMessages()
     }
 
-    private fun getCurrentUserName() {
-        val currentUser = auth.currentUser ?: return
-
-        firestore.collection("users").document(currentUser.uid).get()
-            .addOnSuccessListener { doc ->
-                currentUserName = doc.getString("name") ?: "User"
-                Log.d(TAG, "Current user name: $currentUserName")
-            }
-            .addOnFailureListener { e ->
-                Log.e(TAG, "Error getting user name", e)
-                currentUserName = "User"
-            }
-    }
-
-    private fun setupClickListeners() {
-        binding.btnBack.setOnClickListener {
-            finish()
-        }
-
-        binding.btnSend.setOnClickListener {
-            sendTextMessage()
-        }
-
-        binding.btnAttach.setOnClickListener {
-            showAttachmentOptions()
-        }
-
-        // Optional: Send message on Enter key
-        binding.etMessage.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEND) {
-                sendTextMessage()
-                true
-            } else {
-                false
-            }
+    private fun setupToolbar() {
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.apply {
+            setDisplayHomeAsUpEnabled(true)
+            title = guestName
         }
     }
 
     private fun setupRecyclerView() {
-        messageAdapter = ChatMessageAdapter(
+        val currentUserId = auth.currentUser?.uid ?: ""
+
+        chatAdapter = ChatMessageAdapter(
             messages = messageList,
-            currentUserId = auth.currentUser?.uid ?: "",
-            onImageClick = { imageUrl ->
-                openImageViewer(imageUrl)
+            currentUserId = currentUserId,
+            onImageClick = { message ->
+                // Handle image click
+                handleImageClick(message)
             },
             onVoicePlay = { message ->
-                playVoiceMessage(message)
+                // Handle voice message play
+                handleVoicePlay(message)
             }
         )
 
         binding.recyclerViewMessages.apply {
-            layoutManager = LinearLayoutManager(this@ChatActivity).apply {
-                stackFromEnd = true // Start from bottom
-            }
-            adapter = messageAdapter
+            layoutManager = LinearLayoutManager(this@ChatActivity)
+            adapter = chatAdapter
+        }
+    }
+
+    private fun setupClickListeners() {
+        binding.btnSendMessage.setOnClickListener {
+            sendMessage()
+        }
+
+        binding.btnAttachPhoto.setOnClickListener {
+            // Handle photo attachment
+            attachPhoto()
+        }
+
+        binding.btnVoiceMessage.setOnClickListener {
+            // Handle voice message
+            recordVoiceMessage()
         }
     }
 
     private fun loadMessages() {
-        if (chatRoomId.isEmpty()) {
-            Log.e(TAG, "Chat room ID is empty")
-            Toast.makeText(this, "Error: Invalid chat room", Toast.LENGTH_SHORT).show()
-            finish()
-            return
+        lifecycleScope.launch {
+            try {
+                val result = chatRepository.getMessages(chatRoomId)
+                if (result.isSuccess) {
+                    val messages = result.getOrNull() ?: emptyList()
+                    messageList.clear()
+                    messageList.addAll(messages.sortedBy { it.timestamp })
+                    chatAdapter.notifyDataSetChanged()
+
+                    // Scroll to bottom
+                    if (messages.isNotEmpty()) {
+                        binding.recyclerViewMessages.scrollToPosition(messages.size - 1)
+                    }
+                } else {
+                    Toast.makeText(this@ChatActivity, "Error loading messages", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@ChatActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
         }
-
-        Log.d(TAG, "Loading messages for chat room: $chatRoomId")
-
-        database.reference.child("messages").child(chatRoomId)
-            .addChildEventListener(object : ChildEventListener {
-                override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-                    val message = snapshot.getValue(ChatMessage::class.java)
-                    message?.let {
-                        Log.d(TAG, "New message received: ${it.message}")
-                        messageList.add(it)
-                        messageAdapter.notifyItemInserted(messageList.size - 1)
-                        binding.recyclerViewMessages.scrollToPosition(messageList.size - 1)
-
-                        // Mark message as read if it's not from current user
-                        if (it.senderId != auth.currentUser?.uid) {
-                            markMessageAsRead(it)
-                        }
-                    }
-                }
-
-                override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
-                    val message = snapshot.getValue(ChatMessage::class.java)
-                    message?.let { updatedMessage ->
-                        val index = messageList.indexOfFirst { it.id == updatedMessage.id }
-                        if (index != -1) {
-                            messageList[index] = updatedMessage
-                            messageAdapter.notifyItemChanged(index)
-                        }
-                    }
-                }
-
-                override fun onChildRemoved(snapshot: DataSnapshot) {
-                    val message = snapshot.getValue(ChatMessage::class.java)
-                    message?.let { removedMessage ->
-                        val index = messageList.indexOfFirst { it.id == removedMessage.id }
-                        if (index != -1) {
-                            messageList.removeAt(index)
-                            messageAdapter.notifyItemRemoved(index)
-                        }
-                    }
-                }
-
-                override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
-
-                override fun onCancelled(error: DatabaseError) {
-                    Log.e(TAG, "Error loading messages", error.toException())
-                    Toast.makeText(this@ChatActivity, "Error loading messages: ${error.message}", Toast.LENGTH_SHORT).show()
-                }
-            })
     }
 
-    private fun sendTextMessage() {
+    private fun sendMessage() {
         val messageText = binding.etMessage.text.toString().trim()
         if (messageText.isEmpty()) return
 
-        val currentUser = auth.currentUser ?: return
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show()
+            return
+        }
 
-        val messageId = database.reference.child("messages").child(chatRoomId).push().key ?: return
+        lifecycleScope.launch {
+            try {
+                val message = ChatMessage(
+                    id = System.currentTimeMillis().toString(),
+                    message = messageText,
+                    timestamp = System.currentTimeMillis(),
+                    isOutgoing = true,
+                    senderName = currentUser.displayName ?: "You",
+                    senderId = currentUser.uid,
+                    chatRoomId = chatRoomId, // FIX: Use chatRoomId parameter
+                    isDelivered = false,
+                    isRead = false,
+                    readBy = emptyList(),
+                    messageType = "text"
+                )
 
-        val message = ChatMessage(
-            id = messageId,
-            chatRoomId = chatRoomId,
-            senderId = currentUser.uid,
-            senderName = currentUserName,
-            message = messageText,
-            messageType = "text",
-            timestamp = System.currentTimeMillis()
-        )
-
-        Log.d(TAG, "Sending text message: $messageText")
-
-        database.reference.child("messages").child(chatRoomId).child(messageId).setValue(message)
-            .addOnSuccessListener {
-                binding.etMessage.setText("")
-                updateLastMessage(messageText)
-                Log.d(TAG, "Text message sent successfully")
-            }
-            .addOnFailureListener { e ->
-                Log.e(TAG, "Error sending message", e)
-                Toast.makeText(this, "Failed to send message: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-    }
-
-    private fun showAttachmentOptions() {
-        val options = arrayOf("Photo", "Camera", "Voice Note")
-
-        AlertDialog.Builder(this)
-            .setTitle("Attach")
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> checkStoragePermissionAndOpenGallery()
-                    1 -> checkCameraPermissionAndTakePhoto()
-                    2 -> recordVoiceNote()
+                val result = chatRepository.sendMessage(message)
+                if (result.isSuccess) {
+                    binding.etMessage.text?.clear()
+                    // FIX: Add message to list properly
+                    messageList.add(message)
+                    chatAdapter.notifyItemInserted(messageList.size - 1)
+                    binding.recyclerViewMessages.scrollToPosition(messageList.size - 1)
+                } else {
+                    Toast.makeText(this@ChatActivity, "Failed to send message", Toast.LENGTH_SHORT).show()
                 }
+            } catch (e: Exception) {
+                Toast.makeText(this@ChatActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             }
-            .setNegativeButton("Cancel", null)
-            .show()
-    }
-
-    private fun checkCameraPermissionAndTakePhoto() {
-        if (allPermissionsGranted()) {
-            takePhoto()
-        } else {
-            ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, CAMERA_PERMISSION_CODE)
         }
     }
 
-    private fun checkStoragePermissionAndOpenGallery() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
-            == PackageManager.PERMISSION_GRANTED) {
-            openGallery()
-        } else {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
-                STORAGE_PERMISSION_CODE
-            )
+    private fun handleImageClick(message: ChatMessage) {
+        // Handle image message click
+        if (message.imageUrl.isNotEmpty()) {
+            // Open image viewer
+            // TODO: Implement image viewer
         }
     }
 
-    private fun takePhoto() {
-        try {
-            val photoFile = createImageFile()
-            currentPhotoUri = androidx.core.content.FileProvider.getUriForFile(
-                this,
-                "${applicationContext.packageName}.provider",
-                photoFile
-            )
-            cameraLauncher.launch(currentPhotoUri)
-            Log.d(TAG, "Camera launched")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error taking photo", e)
-            Toast.makeText(this, "Error opening camera: ${e.message}", Toast.LENGTH_SHORT).show()
+    private fun handleVoicePlay(message: ChatMessage) {
+        // Handle voice message play
+        if (message.voiceUrl.isNotEmpty()) {
+            // Play voice message
+            // TODO: Implement voice player
         }
     }
 
-    private fun openGallery() {
-        galleryLauncher.launch("image/*")
-        Log.d(TAG, "Gallery opened")
+    private fun attachPhoto() {
+        // TODO: Implement photo attachment
+        Toast.makeText(this, "Photo attachment coming soon", Toast.LENGTH_SHORT).show()
     }
 
-    private fun createImageFile(): File {
-        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val storageDir = getExternalFilesDir(android.os.Environment.DIRECTORY_PICTURES)
-        return File.createTempFile("CHAT_${timeStamp}_", ".jpg", storageDir)
+    private fun recordVoiceMessage() {
+        // TODO: Implement voice recording
+        Toast.makeText(this, "Voice messages coming soon", Toast.LENGTH_SHORT).show()
     }
 
-    private fun uploadImageMessage(imageUri: Uri) {
-        val currentUser = auth.currentUser ?: return
+    private fun markMessagesAsRead() {
+        lifecycleScope.launch {
+            try {
+                val currentUserId = auth.currentUser?.uid ?: return@launch
 
-        // Show progress
-        binding.progressBar.visibility = View.VISIBLE
-        binding.btnSend.isEnabled = false
+                val unreadMessages = messageList.filter {
+                    !it.readBy.contains(currentUserId) && it.senderId != currentUserId
+                }
 
-        val messageId = database.reference.child("messages").child(chatRoomId).push().key ?: return
-        val imageRef = storage.reference.child("chat_images/$chatRoomId/$messageId.jpg")
-
-        Log.d(TAG, "Uploading image message...")
-
-        imageRef.putFile(imageUri)
-            .addOnSuccessListener { taskSnapshot ->
-                imageRef.downloadUrl.addOnSuccessListener { downloadUri ->
-                    val message = ChatMessage(
-                        id = messageId,
-                        chatRoomId = chatRoomId,
-                        senderId = currentUser.uid,
-                        senderName = currentUserName,
-                        message = "", // Empty for image messages
-                        messageType = "image",
-                        imageUrl = downloadUri.toString(),
-                        timestamp = System.currentTimeMillis()
+                for (message in unreadMessages) {
+                    val updatedMessage = message.copy(
+                        readBy = message.readBy + currentUserId,
+                        isRead = true
                     )
-
-                    database.reference.child("messages").child(chatRoomId).child(messageId).setValue(message)
-                        .addOnSuccessListener {
-                            binding.progressBar.visibility = View.GONE
-                            binding.btnSend.isEnabled = true
-                            updateLastMessage("📷 Photo")
-                            Log.d(TAG, "Image message sent successfully")
-                        }
-                        .addOnFailureListener { e ->
-                            handleUploadError("Failed to send image message", e)
-                        }
+                    chatRepository.updateMessage(updatedMessage)
                 }
-            }
-            .addOnFailureListener { e ->
-                handleUploadError("Failed to upload image", e)
-            }
-            .addOnProgressListener { taskSnapshot ->
-                val progress = (100.0 * taskSnapshot.bytesTransferred / taskSnapshot.totalByteCount).toInt()
-                Log.d(TAG, "Image upload progress: $progress%")
-            }
-    }
-
-    private fun recordVoiceNote() {
-        // TODO: Implement voice recording functionality
-        Toast.makeText(this, "Voice notes - Coming soon!", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun playVoiceMessage(message: ChatMessage) {
-        // TODO: Implement voice message playback
-        Toast.makeText(this, "Playing voice message - Coming soon!", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun openImageViewer(imageUrl: String) {
-        val intent = Intent(this, PhotoViewerActivity::class.java)
-        intent.putExtra("imageUrl", imageUrl)
-        intent.putExtra("photoId", "")
-        startActivity(intent)
-    }
-
-    private fun markMessageAsRead(message: ChatMessage) {
-        val currentUser = auth.currentUser ?: return
-
-        val updatedReadBy = message.readBy.toMutableMap()
-        updatedReadBy[currentUser.uid] = System.currentTimeMillis()
-
-        database.reference.child("messages").child(chatRoomId).child(message.id)
-            .child("readBy").setValue(updatedReadBy)
-    }
-
-    private fun updateLastMessage(lastMessage: String) {
-        val updates = hashMapOf<String, Any>(
-            "lastMessage" to lastMessage,
-            "lastMessageTime" to System.currentTimeMillis(),
-            "lastMessageSender" to currentUserName
-        )
-
-        database.reference.child("chatRooms").child(chatRoomId).updateChildren(updates)
-            .addOnFailureListener { e ->
-                Log.e(TAG, "Error updating last message", e)
-            }
-    }
-
-    private fun handleUploadError(message: String, exception: Exception) {
-        binding.progressBar.visibility = View.GONE
-        binding.btnSend.isEnabled = true
-        Log.e(TAG, message, exception)
-        Toast.makeText(this, "$message: ${exception.message}", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
-        ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
-        when (requestCode) {
-            CAMERA_PERMISSION_CODE -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    takePhoto()
-                } else {
-                    Toast.makeText(this, "Camera permission required to take photos", Toast.LENGTH_SHORT).show()
-                }
-            }
-            STORAGE_PERMISSION_CODE -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    openGallery()
-                } else {
-                    Toast.makeText(this, "Storage permission required to access gallery", Toast.LENGTH_SHORT).show()
-                }
+            } catch (e: Exception) {
+                // Handle error silently
             }
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.d(TAG, "ChatActivity destroyed")
+    override fun onResume() {
+        super.onResume()
+        markMessagesAsRead()
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        finish()
+        return true
     }
 }

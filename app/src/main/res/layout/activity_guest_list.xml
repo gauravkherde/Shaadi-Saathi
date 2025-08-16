@@ -21,286 +21,153 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <androidx.core.widget.NestedScrollView
+    <!-- FIX: Add SwipeRefreshLayout wrapper -->
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="vertical">
 
-            <!-- Statistics Cards -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Guest Overview"
-                        android:textColor="@color/colorPrimary"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:orientation="horizontal">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:id="@+id/tvTotalGuests"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Total: 0"
-                                android:textColor="@color/colorPrimary"
-                                android:textSize="16sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:id="@+id/tvTotalAttending"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Attending: 0"
-                                android:textSize="14sp" />
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:id="@+id/tvConfirmedCount"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Confirmed: 0"
-                                android:textColor="@color/status_confirmed"
-                                android:textSize="14sp" />
-
-                            <TextView
-                                android:id="@+id/tvPendingCount"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Pending: 0"
-                                android:textColor="@color/status_pending"
-                                android:textSize="14sp" />
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:id="@+id/tvDeclinedCount"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Declined: 0"
-                                android:textColor="@color/status_declined"
-                                android:textSize="14sp" />
-
-                        </LinearLayout>
-
-                    </LinearLayout>
-
-                </LinearLayout>
-
-            </androidx.cardview.widget.CardView>
-
-            <!-- Action Buttons -->
+            <!-- Filter Chips -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:orientation="horizontal">
+                android:orientation="vertical"
+                android:padding="16dp">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnImportContacts"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="0dp"
+                <!-- Category Filter -->
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:layout_weight="1"
-                    android:text="Import Contacts"
-                    app:icon="@drawable/ic_import_contacts" />
+                    android:layout_marginBottom="8dp"
+                    android:text="Filter by Category"
+                    android:textColor="@color/colorPrimary"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
 
-            </LinearLayout>
-
-            <!-- RSVP Status Filters -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
-
-                <LinearLayout
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipGroupCategory"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:layout_marginBottom="16dp"
+                    app:singleSelection="true">
 
-                    <TextView
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipAll"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        android:text="Filter by RSVP Status"
-                        android:textColor="@color/colorPrimary"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
+                        android:checked="true"
+                        android:text="All"
+                        app:chipBackgroundColor="@drawable/chip_background_selector" />
 
-                    <com.google.android.material.chip.ChipGroup
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:singleSelection="true">
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/chipAll"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:checked="true"
-                            android:text="All"
-                            app:chipBackgroundColor="@color/chip_background_selector" />
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/chipConfirmed"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Confirmed (0)"
-                            app:chipBackgroundColor="@color/chip_background_selector" />
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/chipPending"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Pending (0)"
-                            app:chipBackgroundColor="@color/chip_background_selector" />
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/chipDeclined"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Declined (0)"
-                            app:chipBackgroundColor="@color/chip_background_selector" />
-
-                    </com.google.android.material.chip.ChipGroup>
-
-                    <TextView
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipFamily"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:layout_marginBottom="8dp"
-                        android:text="Filter by Category"
-                        android:textColor="@color/colorPrimary"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
+                        android:text="Family"
+                        app:chipBackgroundColor="@drawable/chip_background_selector" />
 
-                    <com.google.android.material.chip.ChipGroup
-                        android:layout_width="match_parent"
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipFriends"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:singleSelection="true">
+                        android:text="Friends"
+                        app:chipBackgroundColor="@drawable/chip_background_selector" />
 
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/chipFamily"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Family"
-                            app:chipBackgroundColor="@color/chip_background_selector" />
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipColleagues"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Colleagues"
+                        app:chipBackgroundColor="@drawable/chip_background_selector" />
 
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/chipFriends"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Friends"
-                            app:chipBackgroundColor="@color/chip_background_selector" />
+                </com.google.android.material.chip.ChipGroup>
 
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/chipColleagues"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Colleagues"
-                            app:chipBackgroundColor="@color/chip_background_selector" />
+                <!-- RSVP Status Filter -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="Filter by RSVP Status"
+                    android:textColor="@color/colorPrimary"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
 
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/chipOthers"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Others"
-                            app:chipBackgroundColor="@color/chip_background_selector" />
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipGroupRSVP"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:singleSelection="true">
 
-                    </com.google.android.material.chip.ChipGroup>
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipAllRSVP"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="All"
+                        app:chipBackgroundColor="@drawable/chip_background_selector" />
 
-                </LinearLayout>
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipConfirmed"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Confirmed"
+                        app:chipBackgroundColor="@drawable/chip_background_selector" />
 
-            </com.google.android.material.card.MaterialCardView>
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipPending"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Pending"
+                        app:chipBackgroundColor="@drawable/chip_background_selector" />
 
-            <!-- Progress Bar -->
-            <ProgressBar
-                android:id="@+id/progressBar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_margin="16dp"
-                android:visibility="gone" />
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipDeclined"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Declined"
+                        app:chipBackgroundColor="@drawable/chip_background_selector" />
+
+                </com.google.android.material.chip.ChipGroup>
+
+            </LinearLayout>
 
             <!-- Guest List -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerViewGuests"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginBottom="80dp"
+                android:layout_height="match_parent"
+                android:padding="8dp"
                 tools:listitem="@layout/item_guest_list" />
 
             <!-- Empty State -->
             <LinearLayout
                 android:id="@+id/layoutEmptyState"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="32dp"
+                android:layout_height="match_parent"
                 android:gravity="center"
                 android:orientation="vertical"
+                android:padding="32dp"
                 android:visibility="gone">
 
                 <ImageView
                     android:layout_width="120dp"
                     android:layout_height="120dp"
+                    android:layout_marginBottom="24dp"
                     android:alpha="0.5"
-                    android:src="@drawable/ic_guest"
+                    android:src="@drawable/ic_people"
                     app:tint="@color/colorSecondary" />
 
                 <TextView
-                    android:id="@+id/tvEmptyMessage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
                     android:gravity="center"
-                    android:text="No guests added yet.\nStart by adding your first guest!"
+                    android:text="No guests found.\nTap + to add your first guest!"
                     android:textColor="@color/colorSecondary"
                     android:textSize="16sp" />
 
@@ -308,16 +175,16 @@
 
         </LinearLayout>
 
-    </androidx.core.widget.NestedScrollView>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    <!-- FAB -->
+    <!-- Add Guest FAB -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAddGuest"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
-        android:src="@drawable/ic_add_guest"
+        android:src="@drawable/ic_add"
         app:backgroundTint="@color/colorPrimary"
         app:tint="@color/colorAccent" />
 

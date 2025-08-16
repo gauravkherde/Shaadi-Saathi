@@ -1,14 +1,10 @@
 package com.gaurav.shaadisaathi.activities
 
 import android.os.Bundle
-import android.util.Log
-import android.view.MenuItem
-import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.google.firebase.auth.FirebaseAuth
 import com.gaurav.shaadisaathi.R
 import com.gaurav.shaadisaathi.databinding.ActivityAddVendorBinding
 import com.gaurav.shaadisaathi.models.Vendor
@@ -16,218 +12,286 @@ import com.gaurav.shaadisaathi.models.VendorContactInfo
 import com.gaurav.shaadisaathi.models.VendorLocation
 import com.gaurav.shaadisaathi.models.VendorPricing
 import com.gaurav.shaadisaathi.repository.VendorRepository
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
-import java.util.*
 
 class AddVendorActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAddVendorBinding
-    private lateinit var auth: FirebaseAuth
     private val vendorRepository = VendorRepository()
-    private val TAG = "AddVendorActivity"
+    private val auth = FirebaseAuth.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAddVendorBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        auth = FirebaseAuth.getInstance()
-
         setupToolbar()
         setupSpinners()
         setupClickListeners()
-
-        Log.d(TAG, "AddVendorActivity initialized")
     }
 
     private fun setupToolbar() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.apply {
-            title = "Add Vendor"
             setDisplayHomeAsUpEnabled(true)
-            setDisplayShowHomeEnabled(true)
+            title = "Add Vendor"
         }
     }
 
     private fun setupSpinners() {
-        // Vendor Category
-        val categories = arrayOf("Photographer", "Caterer", "Decorator", "DJ", "Makeup Artist", "Florist", "Transportation", "Other")
+        // Vendor Category Spinner
+        val categories = arrayOf(
+            "Photographer", "Caterer", "Decorator", "DJ/Music",
+            "Makeup Artist", "Florist", "Venue", "Transport",
+            "Videographer", "Mehendi Artist", "Pandit/Priest",
+            "Security", "Sound System", "Lighting", "Others"
+        )
         val categoryAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
         categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        binding.spinnerVendorCategory.adapter = categoryAdapter
-
-        // Rating (optional)
-        val ratings = arrayOf("Not Rated", "1 Star", "2 Stars", "3 Stars", "4 Stars", "5 Stars")
-        val ratingAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ratings)
-        ratingAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        binding.spinnerRating.adapter = ratingAdapter
+        binding.spinnerCategory.adapter = categoryAdapter
     }
 
     private fun setupClickListeners() {
         binding.btnSaveVendor.setOnClickListener {
-            if (validateInput()) {
+            if (validateInputs()) {
                 saveVendor()
             }
         }
 
         binding.btnCancel.setOnClickListener {
-            finish()
+            showCancelConfirmation()
         }
 
-        binding.switchIsVerified.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                binding.tvVerifiedNote.visibility = View.VISIBLE
+        binding.btnClearForm.setOnClickListener {
+            clearForm()
+        }
+    }
+
+    private fun validateInputs(): Boolean {
+        var isValid = true
+
+        with(binding) {
+            // Vendor name validation
+            if (etVendorName.text.toString().trim().isEmpty()) {
+                etVendorName.error = "Vendor name is required"
+                etVendorName.requestFocus()
+                isValid = false
+            }
+
+            // Primary phone validation
+            if (etPrimaryPhone.text.toString().trim().isEmpty()) {
+                etPrimaryPhone.error = "Phone number is required"
+                if (isValid) etPrimaryPhone.requestFocus()
+                isValid = false
+            } else if (etPrimaryPhone.text.toString().trim().length < 10) {
+                etPrimaryPhone.error = "Enter a valid phone number"
+                if (isValid) etPrimaryPhone.requestFocus()
+                isValid = false
+            }
+
+            // Email validation (if provided)
+            val email = etEmail.text.toString().trim()
+            if (email.isNotEmpty() && !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                etEmail.error = "Enter a valid email address"
+                if (isValid) etEmail.requestFocus()
+                isValid = false
+            }
+
+            // City validation
+            if (etCity.text.toString().trim().isEmpty()) {
+                etCity.error = "City is required"
+                if (isValid) etCity.requestFocus()
+                isValid = false
+            }
+
+            // State validation
+            if (etState.text.toString().trim().isEmpty()) {
+                etState.error = "State is required"
+                if (isValid) etState.requestFocus()
+                isValid = false
+            }
+
+            // Base price validation
+            val basePriceText = etBasePrice.text.toString().trim()
+            if (basePriceText.isEmpty()) {
+                etBasePrice.error = "Base price is required"
+                if (isValid) etBasePrice.requestFocus()
+                isValid = false
             } else {
-                binding.tvVerifiedNote.visibility = View.GONE
+                val basePrice = basePriceText.toDoubleOrNull()
+                if (basePrice == null || basePrice <= 0) {
+                    etBasePrice.error = "Enter a valid price"
+                    if (isValid) etBasePrice.requestFocus()
+                    isValid = false
+                }
+            }
+
+            // Per hour rate validation (if provided)
+            val perHourRateText = etPerHourRate.text.toString().trim()
+            if (perHourRateText.isNotEmpty()) {
+                val perHourRate = perHourRateText.toDoubleOrNull()
+                if (perHourRate == null || perHourRate <= 0) {
+                    etPerHourRate.error = "Enter a valid rate"
+                    if (isValid) etPerHourRate.requestFocus()
+                    isValid = false
+                }
             }
         }
-    }
-
-    private fun validateInput(): Boolean {
-        val name = binding.etVendorName.text.toString().trim()
-        val businessName = binding.etBusinessName.text.toString().trim()
-        val phone = binding.etVendorPhone.text.toString().trim()
-        val email = binding.etVendorEmail.text.toString().trim()
-
-        if (name.isEmpty() && businessName.isEmpty()) {
-            Toast.makeText(this, "Please provide either vendor name or business name", Toast.LENGTH_LONG).show()
-            return false
-        }
-
-        if (phone.isEmpty() && email.isEmpty()) {
-            Toast.makeText(this, "Please provide either phone number or email", Toast.LENGTH_LONG).show()
-            return false
-        }
-
-        if (phone.isNotEmpty() && !isValidPhoneNumber(phone)) {
-            binding.etVendorPhone.error = "Please enter a valid phone number"
-            binding.etVendorPhone.requestFocus()
-            return false
-        }
-
-        if (email.isNotEmpty() && !isValidEmail(email)) {
-            binding.etVendorEmail.error = "Please enter a valid email address"
-            binding.etVendorEmail.requestFocus()
-            return false
-        }
-
-        return true
-    }
-
-    private fun isValidPhoneNumber(phone: String): Boolean {
-        return phone.matches(Regex("^[+]?[0-9]{10,15}$"))
-    }
-
-    private fun isValidEmail(email: String): Boolean {
-        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+        return isValid
     }
 
     private fun saveVendor() {
-        val currentUser = auth.currentUser
-        if (currentUser == null) {
-            Toast.makeText(this, "Please login to save vendor", Toast.LENGTH_SHORT).show()
-            finish()
-            return
-        }
-
+        binding.progressBar.visibility = android.view.View.VISIBLE
         binding.btnSaveVendor.isEnabled = false
-        binding.btnSaveVendor.text = "Saving..."
-        binding.progressBar.visibility = View.VISIBLE
-
-        val vendorId = UUID.randomUUID().toString()
-
-        val contactInfo = VendorContactInfo(
-            primaryPhone = binding.etVendorPhone.text.toString().trim(),
-            secondaryPhone = binding.etSecondaryPhone.text.toString().trim(),
-            email = binding.etVendorEmail.text.toString().trim(),
-            website = binding.etWebsite.text.toString().trim(),
-            socialMedia = binding.etSocialMedia.text.toString().trim()
-        )
-
-        val location = VendorLocation(
-            address = binding.etVendorAddress.text.toString().trim(),
-            city = binding.etVendorCity.text.toString().trim(),
-            state = binding.etVendorState.text.toString().trim(),
-            pincode = binding.etVendorPincode.text.toString().trim()
-        )
-
-        val basePrice = binding.etBasePrice.text.toString().toDoubleOrNull() ?: 0.0
-        val pricing = VendorPricing(
-            basePrice = basePrice,
-            currency = "INR",
-            priceRange = if (basePrice > 0) {
-                when {
-                    basePrice < 10000 -> "Budget"
-                    basePrice < 50000 -> "Mid-range"
-                    else -> "Premium"
-                }
-            } else "Not specified",
-            negotiable = binding.switchNegotiable.isChecked
-        )
-
-        val rating = when (binding.spinnerRating.selectedItemPosition) {
-            0 -> 0.0 // Not Rated
-            else -> binding.spinnerRating.selectedItemPosition.toDouble()
-        }
-
-        val vendor = Vendor(
-            id = vendorId,
-            hostId = currentUser.uid,
-            name = binding.etVendorName.text.toString().trim(),
-            businessName = binding.etBusinessName.text.toString().trim(),
-            category = binding.spinnerVendorCategory.selectedItem.toString().lowercase().replace(" ", ""),
-            description = binding.etVendorDescription.text.toString().trim(),
-            contactInfo = contactInfo,
-            location = location,
-            pricing = pricing,
-            rating = rating,
-            totalReviews = if (rating > 0) 1 else 0,
-            services = binding.etServices.text.toString().trim(),
-            specialization = binding.etSpecialization.text.toString().trim(),
-            experience = binding.etExperience.text.toString().toIntOrNull() ?: 0,
-            portfolio = binding.etPortfolio.text.toString().trim(),
-            notes = binding.etVendorNotes.text.toString().trim(),
-            isVerified = binding.switchIsVerified.isChecked,
-            isFavorite = binding.switchFavorite.isChecked,
-            addedAt = System.currentTimeMillis(),
-            updatedAt = System.currentTimeMillis()
-        )
 
         lifecycleScope.launch {
             try {
+                val currentUser = auth.currentUser
+                if (currentUser == null) {
+                    Toast.makeText(this@AddVendorActivity, "Please login first", Toast.LENGTH_SHORT).show()
+                    finish()
+                    return@launch
+                }
+
+                val contactInfo = VendorContactInfo(
+                    primaryPhone = binding.etPrimaryPhone.text.toString().trim(),
+                    secondaryPhone = binding.etSecondaryPhone.text.toString().trim(),
+                    email = binding.etEmail.text.toString().trim(),
+                    website = binding.etWebsite.text.toString().trim()
+                )
+
+                val location = VendorLocation(
+                    address = binding.etAddress.text.toString().trim(),
+                    city = binding.etCity.text.toString().trim(),
+                    state = binding.etState.text.toString().trim(),
+                    pincode = binding.etPincode.text.toString().trim(),
+                    latitude = 0.0,
+                    longitude = 0.0
+                )
+
+                val pricing = VendorPricing(
+                    basePrice = binding.etBasePrice.text.toString().toDoubleOrNull() ?: 0.0,
+                    priceRange = binding.etPriceRange.text.toString().trim(),
+                    perHourRate = binding.etPerHourRate.text.toString().toDoubleOrNull() ?: 0.0,
+                    currency = "INR"
+                )
+
+                val vendor = Vendor(
+                    id = System.currentTimeMillis().toString(),
+                    name = binding.etVendorName.text.toString().trim(),
+                    category = binding.spinnerCategory.selectedItem.toString(),
+                    description = binding.etDescription.text.toString().trim(),
+                    contactInfo = contactInfo,
+                    location = location,
+                    pricing = pricing,
+                    services = binding.etServices.text.toString().trim(),
+                    specialization = binding.etSpecialization.text.toString().trim(),
+                    experience = binding.etExperience.text.toString().trim(),
+                    rating = 0.0,
+                    totalReviews = 0,
+                    imageUrls = emptyList(),
+                    isFavorite = false,
+                    isBooked = false,
+                    notes = binding.etNotes.text.toString().trim(),
+                    createdAt = System.currentTimeMillis(),
+                    updatedAt = System.currentTimeMillis()
+                )
+
                 val result = vendorRepository.addVendor(vendor)
                 if (result.isSuccess) {
-                    val displayName = vendor.getDisplayName()
-                    Toast.makeText(this@AddVendorActivity, "Vendor '$displayName' added successfully!", Toast.LENGTH_SHORT).show()
-                    Log.d(TAG, "Vendor saved successfully: $vendorId")
+                    Toast.makeText(this@AddVendorActivity, "Vendor added successfully! 🎉", Toast.LENGTH_LONG).show()
+                    setResult(RESULT_OK)
                     finish()
                 } else {
-                    val error = result.exceptionOrNull()
-                    Log.e(TAG, "Error saving vendor", error)
-                    Toast.makeText(this@AddVendorActivity, "Error saving vendor: ${error?.message}", Toast.LENGTH_LONG).show()
-                    resetSaveButton()
+                    Toast.makeText(this@AddVendorActivity, "Error adding vendor. Please try again.", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Exception saving vendor", e)
                 Toast.makeText(this@AddVendorActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-                resetSaveButton()
+            } finally {
+                binding.progressBar.visibility = android.view.View.GONE
+                binding.btnSaveVendor.isEnabled = true
             }
         }
     }
 
-    private fun resetSaveButton() {
-        binding.btnSaveVendor.isEnabled = true
-        binding.btnSaveVendor.text = "Save Vendor"
-        binding.progressBar.visibility = View.GONE
+    private fun clearForm() {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Clear Form")
+            .setMessage("Are you sure you want to clear all entered data?")
+            .setPositiveButton("Clear") { _, _ ->
+                performClearForm()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            android.R.id.home -> {
-                finish()
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
+    private fun performClearForm() {
+        with(binding) {
+            etVendorName.text?.clear()
+            etDescription.text?.clear()
+            etServices.text?.clear()
+            etSpecialization.text?.clear()
+            etExperience.text?.clear()
+            etPrimaryPhone.text?.clear()
+            etSecondaryPhone.text?.clear()
+            etEmail.text?.clear()
+            etWebsite.text?.clear()
+            etAddress.text?.clear()
+            etCity.text?.clear()
+            etState.text?.clear()
+            etPincode.text?.clear()
+            etBasePrice.text?.clear()
+            etPriceRange.text?.clear()
+            etPerHourRate.text?.clear()
+            etNotes.text?.clear()
+            spinnerCategory.setSelection(0)
+
+            // Clear all errors
+            etVendorName.error = null
+            etPrimaryPhone.error = null
+            etEmail.error = null
+            etCity.error = null
+            etState.error = null
+            etBasePrice.error = null
+            etPerHourRate.error = null
         }
+
+        Toast.makeText(this, "Form cleared", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showCancelConfirmation() {
+        // Check if any field has data
+        val hasData = with(binding) {
+            etVendorName.text.toString().trim().isNotEmpty() ||
+                    etDescription.text.toString().trim().isNotEmpty() ||
+                    etServices.text.toString().trim().isNotEmpty() ||
+                    etPrimaryPhone.text.toString().trim().isNotEmpty() ||
+                    etEmail.text.toString().trim().isNotEmpty() ||
+                    etCity.text.toString().trim().isNotEmpty() ||
+                    etBasePrice.text.toString().trim().isNotEmpty()
+        }
+
+        if (hasData) {
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Discard Changes")
+                .setMessage("You have unsaved changes. Are you sure you want to leave?")
+                .setPositiveButton("Discard") { _, _ ->
+                    finish()
+                }
+                .setNegativeButton("Continue Editing", null)
+                .show()
+        } else {
+            finish()
+        }
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        showCancelConfirmation()
+        return true
+    }
+
+    override fun onBackPressed() {
+        showCancelConfirmation()
     }
 }

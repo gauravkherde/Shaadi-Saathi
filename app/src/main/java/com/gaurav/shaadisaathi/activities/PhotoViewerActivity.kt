@@ -1,76 +1,72 @@
 package com.gaurav.shaadisaathi.activities
 
+import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.view.View
+import android.util.Base64
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import com.gaurav.shaadisaathi.databinding.ActivityPhotoViewerBinding
-import com.gaurav.shaadisaathi.utils.ImageUtils
-import kotlinx.coroutines.*
 
 class PhotoViewerActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityPhotoViewerBinding
-    private val activityScope = CoroutineScope(Dispatchers.Main + Job())
+
+    private var photoId: String = ""
+    private var photoBase64: String = "" // FIX: Use base64 instead of URL
+    private var photoCaption: String = ""
+    private var albumId: String = ""
+    private var position: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityPhotoViewerBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val imageBase64 = intent.getStringExtra("imageBase64") ?: ""
-        val photoId = intent.getStringExtra("photoId") ?: ""
+        // Get data from intent
+        photoId = intent.getStringExtra("photoId") ?: ""
+        photoBase64 = intent.getStringExtra("photoBase64") ?: "" // FIX: Get base64 data
+        photoCaption = intent.getStringExtra("photoCaption") ?: ""
+        albumId = intent.getStringExtra("albumId") ?: ""
+        position = intent.getIntExtra("position", 0)
 
+        setupToolbar()
+        loadPhoto()
+    }
+
+    private fun setupToolbar() {
+        binding.tvPhotoTitle.text = "Photo ${position + 1}"
+        
         binding.btnBack.setOnClickListener {
             finish()
         }
-
-        binding.btnShare.setOnClickListener {
-            // TODO: Share functionality
-        }
-
-        binding.btnLike.setOnClickListener {
-            // TODO: Like functionality
-        }
-
-        binding.btnComment.setOnClickListener {
-            // TODO: Comment functionality
-        }
-
-        binding.btnDownload.setOnClickListener {
-            // TODO: Download functionality
-        }
-
-        // Load high-quality image
-        if (imageBase64.isNotEmpty()) {
-            loadHighQualityImage(imageBase64)
-        }
     }
 
-    private fun loadHighQualityImage(imageBase64: String) {
-        binding.progressBar.visibility = View.VISIBLE
-
-        activityScope.launch {
-            try {
-                val highQualityBitmap = withContext(Dispatchers.IO) {
-                    ImageUtils.decompressForViewing(imageBase64)
-                }
-
-                if (highQualityBitmap != null) {
-                    binding.touchImageView.setImageBitmap(highQualityBitmap)
-                    binding.progressBar.visibility = View.GONE
-                } else {
-                    throw Exception("Failed to decompress image")
-                }
-
-            } catch (e: Exception) {
-                binding.progressBar.visibility = View.GONE
-                binding.touchImageView.setImageResource(android.R.drawable.ic_menu_gallery)
+    private fun loadPhoto() {
+        // FIX: Load photo from base64 instead of URL
+        try {
+            if (photoBase64.isNotEmpty()) {
+                val imageBytes = Base64.decode(photoBase64, Base64.DEFAULT)
+                val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+                binding.touchImageView.setImageBitmap(bitmap)
             }
+        } catch (e: Exception) {
+            // Handle error loading image
+            binding.touchImageView.setImageResource(com.gaurav.shaadisaathi.R.drawable.ic_photo)
+        }
+
+        // Set caption if available
+        if (photoCaption.isNotEmpty()) {
+            binding.tvPhotoTitle.text = photoCaption
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        activityScope.cancel()
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                finish()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 }

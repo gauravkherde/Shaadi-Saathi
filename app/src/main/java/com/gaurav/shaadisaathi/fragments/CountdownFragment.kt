@@ -7,10 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import com.gaurav.shaadisaathi.databinding.FragmentCountdownBinding
-import com.gaurav.shaadisaathi.utils.DateTimeUtils
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -47,11 +44,11 @@ class CountdownFragment : Fragment() {
             showDatePicker()
         }
 
-        binding.btnShareCountdown.setOnClickListener {
+        binding.btnShareCountdown?.setOnClickListener {
             shareCountdown()
         }
 
-        binding.btnAddToCalendar.setOnClickListener {
+        binding.btnAddToCalendar?.setOnClickListener {
             addToCalendar()
         }
     }
@@ -61,12 +58,12 @@ class CountdownFragment : Fragment() {
 
         if (weddingDate > 0) {
             val dateFormat = SimpleDateFormat("MMMM dd, yyyy", Locale.getDefault())
-            binding.tvWeddingDate.text = dateFormat.format(Date(weddingDate))
-            binding.layoutCountdown.visibility = View.VISIBLE
-            binding.layoutSetDate.visibility = View.GONE
+            binding.tvWeddingDate?.text = dateFormat.format(Date(weddingDate))
+            binding.layoutCountdown?.visibility = View.VISIBLE
+            binding.layoutSetDate?.visibility = View.GONE
         } else {
-            binding.layoutCountdown.visibility = View.GONE
-            binding.layoutSetDate.visibility = View.VISIBLE
+            binding.layoutCountdown?.visibility = View.GONE
+            binding.layoutSetDate?.visibility = View.VISIBLE
         }
     }
 
@@ -92,21 +89,10 @@ class CountdownFragment : Fragment() {
         val minutes = (millisUntilFinished % (1000 * 60 * 60)) / (1000 * 60)
         val seconds = (millisUntilFinished % (1000 * 60)) / 1000
 
-        binding.tvDays.text = days.toString()
-        binding.tvHours.text = hours.toString()
-        binding.tvMinutes.text = minutes.toString()
-        binding.tvSeconds.text = seconds.toString()
-
-        // Update progress bars
-        val totalDaysInYear = 365f
-        val progressDays = ((totalDaysInYear - days) / totalDaysInYear * 100).coerceIn(0f, 100f)
-        binding.progressDays.progress = progressDays.toInt()
-
-        val progressHours = ((24 - hours) / 24f * 100).coerceIn(0f, 100f)
-        binding.progressHours.progress = progressHours.toInt()
-
-        val progressMinutes = ((60 - minutes) / 60f * 100).coerceIn(0f, 100f)
-        binding.progressMinutes.progress = progressMinutes.toInt()
+        binding.tvDays?.text = days.toString()
+        binding.tvHours?.text = hours.toString()
+        binding.tvMinutes?.text = minutes.toString()
+        binding.tvSeconds?.text = seconds.toString()
 
         // Update milestone messages
         updateMilestoneMessage(days)
@@ -123,15 +109,15 @@ class CountdownFragment : Fragment() {
             else -> "💕 Planning in Progress 💕"
         }
 
-        binding.tvMilestoneMessage.text = message
+        binding.tvMilestoneMessage?.text = message
     }
 
     private fun showWeddingCompleteMessage() {
-        binding.layoutCountdown.visibility = View.GONE
-        binding.layoutWeddingComplete.visibility = View.VISIBLE
+        binding.layoutCountdown?.visibility = View.GONE
+        binding.layoutWeddingComplete?.visibility = View.VISIBLE
 
-        binding.tvCongratulations.text = "🎉 Congratulations! 🎉"
-        binding.tvWeddingCompleteMessage.text = "Your special day has arrived!\nWishing you a lifetime of happiness together! 💕"
+        binding.tvCongratulations?.text = "🎉 Congratulations! 🎉"
+        binding.tvWeddingCompleteMessage?.text = "Your special day has arrived!\nWishing you a lifetime of happiness together! 💕"
     }
 
     private fun showDatePicker() {

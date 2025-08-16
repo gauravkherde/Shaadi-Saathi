@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/navigation_countdown"
+        android:icon="@drawable/ic_countdown"
+        android:title="Countdown" />
+
+    <item
+        android:id="@+id/navigation_guests"
+        android:icon="@drawable/ic_people"
+        android:title="Guests" />
+
+    <item
+        android:id="@+id/navigation_events"
+        android:icon="@drawable/ic_event"
+        android:title="Events" />
+
+    <item
+        android:id="@+id/navigation_vendors"
+        android:icon="@drawable/ic_vendor"
+        android:title="Vendors" />
+
+    <item
+        android:id="@+id/navigation_map"
+        android:icon="@drawable/ic_location"
+        android:title="Map" />
+
+</menu>

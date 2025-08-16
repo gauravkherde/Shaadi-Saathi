@@ -189,14 +189,11 @@ class PhotoGalleryActivity : AppCompatActivity() {
 
         photoAdapter = PhotoAdapter(
             photos = photoList,
-            onItemClick = { photo ->
+            onPhotoClick = { photo, position ->
                 openPhotoViewer(photo)
             },
-            onLikeClick = { photo ->
-                likePhoto(photo)
-            },
-            onCommentClick = { photo ->
-                openComments(photo)
+            onPhotoLongClick = { photo ->
+                showPhotoOptions(photo)
             }
         )
 
@@ -342,6 +339,40 @@ class PhotoGalleryActivity : AppCompatActivity() {
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error showing Firestore permission dialog", e)
+        }
+    }
+
+    private fun showPhotoOptions(photo: Photo) {
+        if (isFinishing || isDestroyed) {
+            Log.w(TAG, "Activity finishing/destroyed, cannot show photo options dialog")
+            return
+        }
+
+        try {
+            runOnUiThread {
+                if (!isFinishing && !isDestroyed) {
+                    val options = if (photo.uploaderId == auth.currentUser?.uid) {
+                        arrayOf("View", "Add Caption", "Share", "Delete")
+                    } else {
+                        arrayOf("View", "Share")
+                    }
+
+                    AlertDialog.Builder(this)
+                        .setTitle("Photo Options")
+                        .setItems(options) { _, which ->
+                            when {
+                                options[which] == "View" -> openPhotoViewer(photo)
+                                options[which] == "Add Caption" -> showAddCaptionDialog(photo)
+                                options[which] == "Share" -> sharePhoto(photo)
+                                options[which] == "Delete" -> showDeleteConfirmation(photo)
+                            }
+                        }
+                        .show()
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error showing photo options", e)
+            Toast.makeText(this, "Cannot show photo options at this time", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -638,9 +669,76 @@ class PhotoGalleryActivity : AppCompatActivity() {
     private fun openPhotoViewer(photo: Photo) {
         val intent = Intent(this, PhotoViewerActivity::class.java)
         intent.putExtra("photoId", photo.id)
-        intent.putExtra("imageBase64", photo.imageBase64)
+        intent.putExtra("photoBase64", photo.imageBase64)
         intent.putExtra("albumId", albumId)
         startActivity(intent)
+    }
+
+    private fun showAddCaptionDialog(photo: Photo) {
+        val input = android.widget.EditText(this)
+        input.setText(photo.caption)
+        input.hint = "Enter caption"
+
+        AlertDialog.Builder(this)
+            .setTitle("Add Caption")
+            .setView(input)
+            .setPositiveButton("Save") { _, _ ->
+                val caption = input.text.toString().trim()
+                updatePhotoCaption(photo, caption)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun updatePhotoCaption(photo: Photo, caption: String) {
+        val photoRef = firestore.collection("photos").document(photo.id)
+        val updatedPhoto = photo.copy(caption = caption)
+
+        photoRef.set(updatedPhoto)
+            .addOnSuccessListener {
+                Toast.makeText(this, "Caption updated", Toast.LENGTH_SHORT).show()
+                // Refresh the photo list
+                loadPhotos()
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Error updating caption", e)
+                Toast.makeText(this, "Error updating caption: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun sharePhoto(photo: Photo) {
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, "Check out this photo from our wedding album!")
+            putExtra(Intent.EXTRA_SUBJECT, "Wedding Photo")
+        }
+        startActivity(Intent.createChooser(intent, "Share Photo"))
+    }
+
+    private fun showDeleteConfirmation(photo: Photo) {
+        AlertDialog.Builder(this)
+            .setTitle("Delete Photo")
+            .setMessage("Are you sure you want to delete this photo? This action cannot be undone.")
+            .setPositiveButton("Delete") { _, _ ->
+                deletePhoto(photo)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun deletePhoto(photo: Photo) {
+        val photoRef = firestore.collection("photos").document(photo.id)
+        
+        photoRef.delete()
+            .addOnSuccessListener {
+                Toast.makeText(this, "Photo deleted successfully", Toast.LENGTH_SHORT).show()
+                // Refresh the photo list
+                loadPhotos()
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Error deleting photo", e)
+                Toast.makeText(this, "Error deleting photo: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
     }
 
     private fun updateEmptyState() {

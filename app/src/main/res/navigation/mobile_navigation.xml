@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/navigation_countdown">
+
+    <fragment
+        android:id="@+id/navigation_countdown"
+        android:name="com.gaurav.shaadisaathi.fragments.CountdownFragment"
+        android:label="Countdown"
+        tools:layout="@layout/fragment_countdown" />
+
+    <fragment
+        android:id="@+id/navigation_guests"
+        android:name="com.gaurav.shaadisaathi.fragments.GuestListFragment"
+        android:label="Guests"
+        tools:layout="@layout/fragment_guest_list" />
+
+    <fragment
+        android:id="@+id/navigation_events"
+        android:name="com.gaurav.shaadisaathi.fragments.EventsFragment"
+        android:label="Events"
+        tools:layout="@layout/fragment_events" />
+
+    <fragment
+        android:id="@+id/navigation_vendors"
+        android:name="com.gaurav.shaadisaathi.fragments.VendorFragment"
+        android:label="Vendors"
+        tools:layout="@layout/fragment_vendor" />
+
+    <fragment
+        android:id="@+id/navigation_map"
+        android:name="com.gaurav.shaadisaathi.fragments.VendorMapFragment"
+        android:label="Map"
+        tools:layout="@layout/fragment_vendor_map" />
+
+</navigation>
